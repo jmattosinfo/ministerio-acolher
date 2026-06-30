@@ -1,0 +1,14 @@
+# Dependências pesadas do Node
+node_modules/
+
+# Arquivos de configuração local e senhas
+.env
+.vscode/sftp.json
+
+# Logs do sistema e de ferramentas de desenvolvimento
+*.log
+nodemon.log
+
+# Arquivos temporários do sistema operacional
+.DS_Store
+Thumbs.db

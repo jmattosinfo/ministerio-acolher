@@ -12,3 +12,6 @@ nodemon.log
 # Arquivos temporários do sistema operacional
 .DS_Store
 Thumbs.db
+
+public/assets/images/*.jpg
+public/assets/images/*.png

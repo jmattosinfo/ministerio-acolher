@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const mysql = require('mysql2/promise');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,55 +11,104 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── Configuração do transporte de e-mail (Brevo / SMTP) ────────────────────
+// ─── Pool de conexão MySQL ───────────────────────────────────────────────────
+const dbPool = mysql.createPool({
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: parseInt(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10
+});
+
+// ─── Criação da tabela ───────────────────────────────────────────────────────
+async function inicializarBanco() {
+    try {
+        const conn = await dbPool.getConnection();
+        await conn.query(`
+            CREATE TABLE IF NOT EXISTS cadastros (
+                id                       INT AUTO_INCREMENT PRIMARY KEY,
+                perfil_triagem           VARCHAR(30)  NOT NULL,
+                profissional_responsavel VARCHAR(50)  NOT NULL,
+                nome                     VARCHAR(150) NOT NULL,
+                data_nascimento          DATE,
+                localizacao              VARCHAR(150),
+                whatsapp                 VARCHAR(30)  NOT NULL,
+                estado_civil             VARCHAR(30),
+                rede_apoio               VARCHAR(30),
+                motivo_terapia           TEXT,
+                preferencia_horario      VARCHAR(30),
+                termo_sigilo             TINYINT(1) DEFAULT 0,
+                termo_sessoes            TINYINT(1) DEFAULT 0,
+                termo_gratuidade         TINYINT(1) DEFAULT 0,
+                criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        conn.release();
+        console.log('✅ Banco de dados inicializado com sucesso.');
+    } catch (err) {
+        console.error('❌ Erro ao inicializar banco:', err.message);
+    }
+}
+
+inicializarBanco();
+
+// ─── Configuração do Nodemailer (Brevo) ─────────────────────────────────────
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false, // true para porta 465, false para 587 (STARTTLS)
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     }
 });
 
-// ─── Mapa de profissionais por perfil de triagem ────────────────────────────
+// ─── Profissionais ───────────────────────────────────────────────────────────
 const PROFISSIONAIS = {
     homem: {
         nome: 'Matheus',
-        email: 'matheus@exemplo.com',
+        email: 'matheussantosqmc@gmail.com',
         whatsapp: '5548996685580',
         whatsappFormatado: '(48) 9 9668-5580'
     },
     vitima_abuso: {
         nome: 'Kelly',
-        email: 'kelly@exemplo.com',
+        email: 'orquideawolff@gmail.com',
         whatsapp: '5551999336247',
         whatsappFormatado: '(51) 9 9933-6247'
     }
 };
 
-// Categoria "mulher" alterna entre Agda e Gabriela (round-robin)
+// Round-robin entre Agda, Gabriela e Shirley para categoria "mulher"
 const EQUIPE_MULHER = [
     {
         nome: 'Agda',
-        email: 'agda@exemplo.com',
+        email: 'acolhedoraagda@gmail.com',
         whatsapp: '5561996266348',
         whatsappFormatado: '(61) 9 9626-6348'
     },
     {
         nome: 'Gabriela',
-        email: 'gabriela@exemplo.com',
+        email: 'gabrielaherculano1987@gmail.com',
         whatsapp: '5585984355097',
         whatsappFormatado: '(85) 9 8435-5097'
+    },
+    {
+        nome: 'Shirley',
+        email: 'shirleyvale@gmail.com',
+        whatsapp: '556581187655',
+        whatsappFormatado: '(65) 9 8118-7655'
     }
 ];
 
 let indiceRoundRobin = 0;
 
 function proximoProfissionalMulher() {
-    const profissional = EQUIPE_MULHER[indiceRoundRobin];
+    const prof = EQUIPE_MULHER[indiceRoundRobin];
     indiceRoundRobin = (indiceRoundRobin + 1) % EQUIPE_MULHER.length;
-    return profissional;
+    return prof;
 }
 
 function obterProfissional(perfil) {
@@ -66,46 +116,30 @@ function obterProfissional(perfil) {
     return PROFISSIONAIS[perfil] || null;
 }
 
-// ─── Monta o corpo do e-mail com os dados do formulário ─────────────────────
-function montarEmailHtml(d, objetivos) {
+// ─── Template de e-mail ──────────────────────────────────────────────────────
+function montarEmailHtml(d, profissional) {
     return `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #7A1C1C;">Novo acolhimento recebido</h2>
-            <p style="color: #2C1A1A;">Um novo formulário foi preenchido e direcionado a você.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #2C1A1A;">
+            <h2 style="color: #7A1C1C; border-bottom: 2px solid #F4EFE6; padding-bottom: 8px;">
+                🌹 Novo acolhimento recebido
+            </h2>
+            <p>Um novo formulário foi preenchido e direcionado a <strong>${profissional.nome}</strong>.</p>
 
-            <h3 style="color: #7A1C1C; font-size: 14px;">Identificação</h3>
-            <p><strong>Nome:</strong> ${d.nome || '-'}</p>
-            <p><strong>Data de nascimento:</strong> ${d.data_nascimento || '-'}</p>
-            <p><strong>Localização:</strong> ${d.localizacao || '-'}</p>
-            <p><strong>WhatsApp:</strong> ${d.whatsapp || '-'}</p>
-            <p><strong>E-mail:</strong> ${d.email || '-'}</p>
-            <p><strong>Contato de emergência:</strong> ${d.contato_emergencia || '-'}</p>
+            <table style="width:100%; border-collapse: collapse; margin-top: 16px; font-size: 14px;">
+                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Nome</td><td style="padding:8px;">${d.nome || '-'}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;">Data de nascimento</td><td style="padding:8px;">${d.data_nascimento || '-'}</td></tr>
+                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Cidade / Estado</td><td style="padding:8px;">${d.localizacao || '-'}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;">WhatsApp</td><td style="padding:8px;">${d.whatsapp || '-'}</td></tr>
+                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Estado civil</td><td style="padding:8px;">${d.estado_civil || '-'}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;">Rede de apoio</td><td style="padding:8px;">${d.rede_apoio || '-'}</td></tr>
+                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Horário preferido</td><td style="padding:8px;">${d.preferencia_horario || '-'}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;vertical-align:top;">Motivo</td><td style="padding:8px;">${d.motivo_terapia || '-'}</td></tr>
+                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Perfil de triagem</td><td style="padding:8px;">${d.perfil_triagem || '-'}</td></tr>
+            </table>
 
-            <h3 style="color: #7A1C1C; font-size: 14px;">Contexto</h3>
-            <p><strong>Estado civil:</strong> ${d.estado_civil || '-'}</p>
-            <p><strong>Escolaridade:</strong> ${d.escolaridade || '-'}</p>
-            <p><strong>Trabalho:</strong> ${d.trabalho || '-'}</p>
-            <p><strong>Rede de apoio:</strong> ${d.rede_apoio || '-'}</p>
-
-            <h3 style="color: #7A1C1C; font-size: 14px;">Histórico clínico</h3>
-            <p><strong>Motivo da terapia:</strong> ${d.motivo_terapia || '-'}</p>
-            <p><strong>Tempo do incômodo:</strong> ${d.tempo_incomodo || '-'}</p>
-            <p><strong>Já fez terapia:</strong> ${d.ja_fez_terapia || '-'} (${d.detalhes_terapia_anterior || '-'})</p>
-            <p><strong>Diagnóstico médico:</strong> ${d.diagnostico_medico || '-'}</p>
-            <p><strong>Medicação:</strong> ${d.medicacao || '-'}</p>
-            <p><strong>Sono (1-10):</strong> ${d.escala_sono || '-'} &nbsp;|&nbsp; <strong>Estresse (1-10):</strong> ${d.escala_estresse || '-'}</p>
-
-            <h3 style="color: #7A1C1C; font-size: 14px;">Financeiro</h3>
-            <p><strong>Renda:</strong> ${d.renda || '-'}</p>
-            <p><strong>Condição de pagamento:</strong> ${d.condicao_pagamento || '-'}</p>
-            <p><strong>Faixa confortável:</strong> ${d.faixa_confortavel || '-'}</p>
-            <p><strong>Frequência:</strong> ${d.frequencia_pagamento || '-'}</p>
-            <p><strong>Horário preferido:</strong> ${d.preferencia_horario || '-'}</p>
-            <p><strong>Objetivos:</strong> ${objetivos || '-'}</p>
-
-            <hr style="border: none; border-top: 1px solid #eee; margin: 16px 0;">
-            <p style="font-size: 12px; color: #888;">Ministério Acolher — informação confidencial, trate com sigilo.</p>
+            <p style="margin-top:24px; font-size:12px; color:#888; border-top:1px solid #eee; padding-top:12px;">
+                Ministério Acolher — informação estritamente confidencial. Trate com sigilo absoluto.
+            </p>
         </div>
     `;
 }
@@ -114,27 +148,43 @@ function montarEmailHtml(d, objetivos) {
 app.post('/api/cadastro', async (req, res) => {
     const d = req.body;
     const perfil = d.perfil_triagem;
-
     const profissional = obterProfissional(perfil);
 
     if (!profissional) {
-        return res.status(400).json({
-            ok: false,
-            mensagem: 'Perfil de triagem inválido.'
-        });
+        return res.status(400).json({ ok: false, mensagem: 'Perfil de triagem inválido.' });
     }
 
-    const objetivos = Array.isArray(d.objetivos) ? d.objetivos.join(', ') : (d.objetivos || '');
-
     try {
+        // Salva no banco
+        const conn = await dbPool.getConnection();
+        await conn.query(`
+            INSERT INTO cadastros (
+                perfil_triagem, profissional_responsavel,
+                nome, data_nascimento, localizacao, whatsapp,
+                estado_civil, rede_apoio, motivo_terapia, preferencia_horario,
+                termo_sigilo, termo_sessoes, termo_gratuidade
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            perfil, profissional.nome,
+            d.nome || null, d.data_nascimento || null,
+            d.localizacao || null, d.whatsapp || null,
+            d.estado_civil || null, d.rede_apoio || null,
+            d.motivo_terapia || null, d.preferencia_horario || null,
+            d.termo_sigilo ? 1 : 0,
+            d.termo_sessoes ? 1 : 0,
+            d.termo_gratuidade ? 1 : 0
+        ]);
+        conn.release();
+
+        // Dispara e-mail para o profissional
         await transporter.sendMail({
             from: `"Ministério Acolher" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
             to: profissional.email,
             subject: `🌹 Novo acolhimento — ${d.nome || 'Pessoa em busca de apoio'}`,
-            html: montarEmailHtml(d, objetivos)
+            html: montarEmailHtml(d, profissional)
         });
 
-        // Retorna apenas o contato do profissional designado — front exibe isso na tela
+        // Retorna contato do profissional para o front
         res.status(200).json({
             ok: true,
             mensagem: 'Formulário recebido com sucesso.',
@@ -146,7 +196,7 @@ app.post('/api/cadastro', async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Erro ao enviar e-mail:', err.message);
+        console.error('❌ Erro ao processar cadastro:', err.message);
         res.status(500).json({
             ok: false,
             mensagem: 'Erro ao processar o envio. Por favor, tente novamente ou entre em contato diretamente pelo WhatsApp.'
@@ -154,7 +204,7 @@ app.post('/api/cadastro', async (req, res) => {
     }
 });
 
-// ─── Fallback: serve o index.html para qualquer rota não-API ────────────────
+// ─── Fallback ────────────────────────────────────────────────────────────────
 app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

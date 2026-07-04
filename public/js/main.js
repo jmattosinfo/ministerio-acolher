@@ -6,98 +6,28 @@ const iconMenuFechado = document.getElementById('icon-menu-fechado');
 
 if (btnMenuMobile) {
     btnMenuMobile.addEventListener('click', () => {
-        menuMobile.classList.toggle('hidden');
+        const aberto = menuMobile.classList.toggle('hidden') === false;
         iconMenuAberto.classList.toggle('hidden');
         iconMenuFechado.classList.toggle('hidden');
+        btnMenuMobile.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+        btnMenuMobile.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
     });
-
-    // Fecha o menu ao clicar em qualquer link dentro dele
     menuMobile.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
             menuMobile.classList.add('hidden');
             iconMenuAberto.classList.remove('hidden');
             iconMenuFechado.classList.add('hidden');
+            btnMenuMobile.setAttribute('aria-expanded', 'false');
+            btnMenuMobile.setAttribute('aria-label', 'Abrir menu');
         });
     });
 }
 
-// ── Stepper ──────────────────────────────────────────
-let etapaAtual = 1;
-
-function irParaEtapa(n) {
-    if (n > etapaAtual && !validarEtapa(etapaAtual)) return;
-
-    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('step-' + n).classList.add('active');
-    etapaAtual = n;
-
-    atualizarStepper();
-    document.getElementById('formulario').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function validarEtapa(n) {
-    const panel = document.getElementById('step-' + n);
-    const required = panel.querySelectorAll('[required]');
-    let ok = true;
-    required.forEach(el => {
-        if (!el.value) {
-            el.classList.add('border-red-400');
-            el.addEventListener('input', () => el.classList.remove('border-red-400'), { once: true });
-            ok = false;
-        }
-    });
-
-    // Validação de radio group na etapa 1
-    if (n === 1) {
-        const radios = panel.querySelectorAll('input[name="perfil_triagem"]');
-        const checked = Array.from(radios).some(r => r.checked);
-        if (!checked) {
-            radios.forEach(r => r.closest('label').querySelector('div').classList.add('border-red-400'));
-            ok = false;
-        }
-    }
-
-    if (!ok) {
-        const primeiro = panel.querySelector('.border-red-400');
-        if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return ok;
-}
-
-function atualizarStepper() {
-    document.querySelectorAll('.step-indicator').forEach(ind => {
-        const n = parseInt(ind.dataset.step);
-        const circle = ind.querySelector('.step-circle');
-        const label = ind.querySelector('span');
-
-        if (n < etapaAtual) {
-            circle.className = 'w-8 h-8 rounded-full border-2 border-emerald-500 bg-emerald-500 text-white text-xs font-bold flex items-center justify-center step-circle';
-            circle.innerText = '✓';
-            if (label) label.className = 'text-xs text-emerald-600 font-semibold hidden sm:block';
-        } else if (n === etapaAtual) {
-            circle.className = 'w-8 h-8 rounded-full border-2 border-brand-dark bg-brand-dark text-white text-xs font-bold flex items-center justify-center step-circle';
-            circle.innerText = n;
-            if (label) label.className = 'text-xs text-brand-dark font-semibold hidden sm:block';
-        } else {
-            circle.className = 'w-8 h-8 rounded-full border-2 border-brand-muted text-brand-muted text-xs font-bold flex items-center justify-center step-circle';
-            circle.innerText = n;
-            if (label) label.className = 'text-xs text-brand-muted hidden sm:block';
-        }
-    });
-
-    // Linha entre etapas
-    const l1 = document.getElementById('line-1-2');
-    const l2 = document.getElementById('line-2-3');
-    if (l1) l1.className = `flex-1 h-px mx-2 step-line ${etapaAtual > 1 ? 'bg-emerald-400' : 'bg-brand-muted'}`;
-    if (l2) l2.className = `flex-1 h-px mx-2 step-line ${etapaAtual > 2 ? 'bg-emerald-400' : 'bg-brand-muted'}`;
-}
-
-// ── Perfil → aviso e rótulo de nome ───────────────────
+// ── Perfil → aviso sigilo ────────────────────────────
 document.querySelectorAll('input[name="perfil_triagem"]').forEach(radio => {
     radio.addEventListener('change', function () {
         const aviso = document.getElementById('aviso-abuso');
         const labelNome = document.getElementById('label-nome');
-
         if (this.value === 'vitima_abuso') {
             aviso.classList.remove('hidden');
             labelNome.innerHTML = 'Nome ou codinome <span class="font-normal text-brand-soft/70">(pseudônimo permitido)</span> *';
@@ -111,7 +41,15 @@ document.querySelectorAll('input[name="perfil_triagem"]').forEach(radio => {
 // ── Envio do formulário (AJAX) ──────────────────────
 document.getElementById('acolherForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    if (!validarEtapa(3)) return;
+
+    // Valida radio de perfil
+    const radios = this.querySelectorAll('input[name="perfil_triagem"]');
+    const perfilSelecionado = Array.from(radios).some(r => r.checked);
+    if (!perfilSelecionado) {
+        radios.forEach(r => r.closest('label').querySelector('div').classList.add('border-red-400'));
+        radios[0].closest('label').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
 
     const btnTexto = document.getElementById('btn-texto');
     const btnSpinner = document.getElementById('btn-spinner');
@@ -133,20 +71,32 @@ document.getElementById('acolherForm').addEventListener('submit', async function
             const data = await response.json();
             const prof = data.profissional;
 
-            this.closest('.bg-brand-light').querySelector('form').style.display = 'none';
+            this.style.display = 'none';
+
+            const mensagemPrevia = "Olá, passei pelo site Acolher, e fui direcionado(a) para você. Gostaria de receber acolhimento. Poderia me ajudar?";
+            const mensagemWhatsApp = encodeURIComponent(mensagemPrevia);
 
             const sucessoDiv = document.getElementById('sucesso');
             sucessoDiv.innerHTML = `
                 <div class="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center text-3xl mx-auto mb-5">✅</div>
                 <h3 class="font-serif text-2xl font-bold text-brand-dark mb-2">Formulário recebido</h3>
                 <p class="text-brand-soft text-sm leading-relaxed max-w-md mx-auto mb-6">
-                    Suas informações foram encaminhadas com sigilo para <strong class="text-brand-dark">${prof.nome}</strong>,
+                    Suas informações foram encaminhadas com sigilo para
+                    <strong class="text-brand-dark">${prof.nome}</strong>,
                     o(a) profissional mais indicado(a) para te acolher.
+                    Você será contactado(a) em breve pelo WhatsApp.
                 </p>
-                <a href="https://wa.me/${prof.whatsapp}" target="_blank"
-                   class="inline-flex items-center gap-2 bg-brand-dark text-white font-semibold px-6 py-3 rounded-xl hover:bg-brand-deep transition text-sm shadow-lg">
-                    📞 Falar com ${prof.nome} agora — ${prof.whatsappFormatado}
+                <a href="https://wa.me/${prof.whatsapp}?text=${mensagemWhatsApp}" target="_blank"
+                   aria-label="Abrir conversa no WhatsApp com ${prof.nome}"
+                   class="inline-flex items-center gap-2 bg-[#25D366] text-white font-semibold px-6 py-3 rounded-xl hover:bg-[#20ba5a] transition text-sm shadow-lg">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.66.986 3.296 1.48 4.805 1.481 5.356 0 9.707-4.333 9.71-9.66 0-2.58-1.01-5.006-2.844-6.834C16.517 2.313 14.166 1.31 11.69 1.31c-5.357 0-9.71 4.333-9.713 9.663-.001 1.748.484 3.454 1.405 4.954L2.38 21.65l6.267-1.642zM17.13 14.13c-.302-.15-1.79-.882-2.067-.983-.277-.1-.478-.15-.678.15-.2.3-.775.98-.95 1.18-.175.2-.35.225-.65.075-1.03-.513-1.74-1.026-2.422-2.188-.18-.3-.18-.56-.05-.71.117-.135.302-.35.45-.525.148-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.678-1.634-.93-2.245-.243-.585-.49-.504-.678-.514-.175-.007-.375-.01-.576-.01-.2 0-.527.075-.802.375-.276.3-1.053 1.03-1.053 2.515s1.08 2.916 1.23 3.116c.15.2 2.123 3.243 5.143 4.545.718.31 1.28.496 1.717.635.722.23 1.38.197 1.9.12.58-.087 1.79-.73 2.04-1.402.25-.673.25-1.25.175-1.373-.075-.123-.275-.2-.575-.35z"/>
+                    </svg>
+                    <span>Falar com ${prof.nome}</span>
                 </a>
+                <p class="text-xs text-brand-soft/50 mt-6">
+                    O atendimento é 100% gratuito e você tem direito a três sessões de aproximadamente 40 minutos.
+                </p>
             `;
             sucessoDiv.classList.remove('hidden');
             sucessoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -154,13 +104,13 @@ document.getElementById('acolherForm').addEventListener('submit', async function
             throw new Error();
         }
     } catch {
-        btnTexto.innerText = 'Enviar formulário';
+        btnTexto.innerText = 'Enviar formulário de acolhimento';
         btnSpinner.classList.add('hidden');
         btnSubmit.disabled = false;
 
         const errDiv = document.createElement('p');
         errDiv.className = 'text-xs text-red-600 text-center mt-3';
-        errDiv.innerText = 'Ocorreu um erro ao enviar. Por favor, tente novamente ou entre em contato diretamente pelo WhatsApp.';
+        errDiv.innerText = 'Ocorreu um erro ao enviar. Por favor, tente novamente.';
         btnSubmit.parentElement.after(errDiv);
         setTimeout(() => errDiv.remove(), 6000);
     }
@@ -176,13 +126,78 @@ function compartilhar() {
         });
     } else {
         navigator.clipboard.writeText(window.location.href).then(() => {
-            alert('Link copiado para a área de transferência!');
+            const btn = document.querySelector('[onclick="compartilhar()"]');
+            const original = btn.innerText;
+            btn.innerText = '✅ Link copiado!';
+            setTimeout(() => btn.innerText = original, 2500);
         });
     }
 }
 
 // ── Reveal ao rolar ──────────────────────────────────
 const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+    entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Modal de profissional (acessível) ────────────────
+const overlay = document.createElement('div');
+overlay.className = 'modal-overlay';
+overlay.setAttribute('role', 'dialog');
+overlay.setAttribute('aria-modal', 'true');
+overlay.setAttribute('aria-label', 'Perfil do profissional');
+overlay.setAttribute('aria-hidden', 'true');
+overlay.innerHTML = `
+    <div class="modal-card" id="modal-card">
+        <button class="modal-fechar" id="modal-fechar" aria-label="Fechar perfil">✕</button>
+        <div id="modal-conteudo"></div>
+    </div>
+`;
+document.body.appendChild(overlay);
+
+document.querySelectorAll('.prof-card').forEach(card => {
+    card.style.cursor = 'pointer';
+
+    const abrirModal = () => {
+        document.getElementById('modal-conteudo').innerHTML = card.innerHTML;
+        overlay.classList.add('aberto');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('modal-fechar').focus(), 50);
+    };
+
+    card.addEventListener('click', abrirModal);
+    card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            abrirModal();
+        }
+    });
+});
+
+document.getElementById('modal-fechar').addEventListener('click', fecharModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) fecharModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharModal(); });
+
+// Trap focus dentro do modal
+overlay.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('aberto')) return;
+    const focaveis = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    const primeiro = focaveis[0];
+    const ultimo = focaveis[focaveis.length - 1];
+    if (e.key === 'Tab') {
+        if (e.shiftKey) {
+            if (document.activeElement === primeiro) { e.preventDefault(); ultimo.focus(); }
+        } else {
+            if (document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
+        }
+    }
+});
+
+function fecharModal() {
+    overlay.classList.remove('aberto');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}

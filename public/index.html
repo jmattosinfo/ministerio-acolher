@@ -1,14 +1,24 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministério Acolher | Um espaço de escuta, cuidado e respeito</title>
+
+    <!-- Open Graph (compartilhamento limpo) -->
+    <meta property="og:title" content="Ministério Acolher">
+    <meta property="og:description" content="Um espaço de escuta, cuidado e respeito. Atendimento 100% gratuito e sigiloso.">
+    <meta property="og:image" content="/assets/images/logoS2.png">
+    <meta property="og:type" content="website">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Alex+Brush&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/images/logoS2.png">
 
     <script>
         tailwind.config = {
@@ -31,14 +41,6 @@
                             text: '#2C1A1A',
                             soft: '#7A5C5C'
                         }
-                    },
-                    animation: {
-                        'fade-up': 'fadeUp 0.7s ease both',
-                        'fade-in': 'fadeIn 0.6s ease both',
-                    },
-                    keyframes: {
-                        fadeUp: { '0%': { opacity: '0', transform: 'translateY(24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                     }
                 }
             }
@@ -50,14 +52,19 @@
 
 <body class="bg-brand-light text-brand-text font-sans antialiased">
 
+    <!-- Skip link: acessibilidade por teclado -->
+    <a href="#formulario" class="skip-link">Pular para o formulário de acolhimento</a>
+
     <!-- Barra Superior -->
     <div class="h-1.5 bg-gradient-to-r from-brand-deep via-brand-accent to-brand-deep"></div>
 
     <!-- Navegação Fixa -->
-    <nav class="sticky top-0 z-50 bg-brand-light/90 backdrop-blur-md border-b border-brand-dark/8 shadow-sm">
+    <nav role="navigation" aria-label="Navegação principal" class="sticky top-0 z-50 bg-brand-light/90 backdrop-blur-md border-b border-brand-dark/8 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="/assets/images/acolher-lado.png" alt="Ministério Acolher" class="h-10 w-auto">
+                <a href="#top" aria-label="Ir para a home">
+                    <img src="/assets/images/acolher-lado.png" alt="Ministério Acolher" class="h-10 w-auto">
+                </a>
             </div>
             <div class="hidden md:flex items-center gap-6 text-sm font-medium text-brand-soft">
                 <a href="#sobre" class="hover:text-brand-dark transition">Sobre</a>
@@ -65,10 +72,9 @@
                 <a href="#formulario" class="hover:text-brand-dark transition">Acolhimento</a>
                 <a href="#formulario" class="bg-brand-dark text-white px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-brand-deep transition">Quero ser acolhido</a>
             </div>
-
             <div class="md:hidden flex items-center gap-2">
                 <a href="#formulario" class="bg-brand-dark text-white px-3 py-1.5 rounded-full text-xs font-semibold">Acolhimento</a>
-                <button id="btn-menu-mobile" aria-label="Abrir menu" class="text-brand-dark p-1.5">
+                <button id="btn-menu-mobile" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-mobile" class="text-brand-dark p-1.5">
                     <svg id="icon-menu-aberto" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
@@ -78,8 +84,7 @@
                 </button>
             </div>
         </div>
-
-        <!-- Menu mobile expansível -->
+        <!-- Menu mobile -->
         <div id="menu-mobile" class="hidden md:hidden border-t border-brand-dark/8 bg-brand-light px-4 py-4 flex flex-col gap-3 text-sm font-medium text-brand-soft">
             <a href="#sobre" class="hover:text-brand-dark transition py-1">Sobre</a>
             <a href="#equipe" class="hover:text-brand-dark transition py-1">Equipe</a>
@@ -91,24 +96,29 @@
     <!-- ══════════════════════════════════════════════════
          HERO
     ══════════════════════════════════════════════════ -->
-    <header class="relative overflow-hidden bg-cover bg-center bg-no-repeat pt-20 pb-16 px-4" id="inicio" style="background-image: url('/assets/images/fundo.jpg')">
-        <!-- Camada suave para garantir legibilidade sobre a foto -->
+    <header role="banner" aria-label="Cabeçalho principal" class="relative overflow-hidden bg-cover bg-center bg-no-repeat pt-20 pb-24 px-4" id="inicio" style="background-image: url('/assets/images/fundo.jpg')">
+        <!-- Overlay suave -->
         <div class="absolute inset-0 bg-gradient-to-b from-brand-light/80 via-brand-light/55 to-brand-light/85 pointer-events-none"></div>
 
         <div class="relative max-w-4xl mx-auto text-center">
-            <img src="/assets/images/logoS2.png" alt="Ministério Acolher" class="h-48 w-auto mx-auto mb-6">
-            <span class="inline-block text-xs font-bold tracking-[0.2em] text-brand-soft uppercase mb-5 border border-brand-muted px-4 py-1.5 rounded-full">
+            <!-- Logo com efeito de destaque -->
+            <div class="logo-hero-wrapper mx-auto mb-6">
+                <img src="/assets/images/logoS2.png" alt="Ministério Acolher" class="logo-hero h-36 w-auto mx-auto block">
+            </div>
+
+            <span class="inline-block text-xs font-bold tracking-[0.2em] text-brand-soft uppercase mb-5 border border-brand-muted px-4 py-1.5 rounded-full bg-brand-light/70 backdrop-blur-sm">
                 Atendimento 100% Gratuito e Sigiloso
             </span>
             <h1 class="font-title text-4xl md:text-6xl text-brand-dark tracking-wide font-bold mb-5 leading-tight">
                 Ministério Acolher
             </h1>
-            <p class="font-serif text-xl md:text-2xl text-brand-dark/75 italic max-w-2xl mx-auto mb-8 leading-relaxed">
+            <p class="font-serif text-xl md:text-2xl text-brand-dark font-bold italic max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow-sm text-center">
                 "Um espaço de escuta, cuidado e respeito."
             </p>
-            <p class="text-brand-soft text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-                Oferecemos acolhimento psicológico especializado para homens, mulheres e meninas (+14) que
-                atravessam situações de abuso, violência doméstica e relacionamentos abusivos — com total sigilo e sem nenhum custo.
+            <p class="text-brand-dark font-semibold text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-sm text-center">
+                Oferecemos acolhimento emocional e espiritual especializado para homens e
+                mulheres maiores de 18 anos que vivenciam ou vivenciaram violência doméstica
+                no relacionamento conjugal, divórcio, ou abuso sexual fora do casamento.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="#formulario" class="bg-brand-dark text-white font-serif font-semibold px-8 py-3.5 rounded-xl shadow-lg hover:bg-brand-deep transition text-base">
@@ -120,15 +130,20 @@
             </div>
         </div>
 
-        <!-- Decoração de fundo sutil -->
-        <div class="absolute -bottom-px left-0 right-0 h-16 bg-gradient-to-b from-transparent to-brand-cream/30 pointer-events-none"></div>
+        <!-- Transição hero → sobre -->
+        <div class="absolute bottom-0 left-0 right-0 pointer-events-none">
+            <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-16 block">
+                <path d="M0,40 C360,80 1080,0 1440,40 L1440,60 L0,60 Z" fill="#F4EFE699" />
+                <path d="M0,50 C480,10 960,70 1440,50 L1440,60 L0,60 Z" fill="#FFFDF9" />
+            </svg>
+        </div>
     </header>
 
 
     <!-- ══════════════════════════════════════════════════
          SOBRE O PROJETO
     ══════════════════════════════════════════════════ -->
-    <section id="sobre" class="bg-brand-cream/30 py-20 px-4">
+    <section id="sobre" role="region" aria-label="Sobre o Projeto" class="bg-brand-cream/30 py-20 px-4">
         <div class="max-w-6xl mx-auto">
 
             <div class="ornament-divider mb-12 reveal">
@@ -136,25 +151,26 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
                 <div class="bg-brand-light rounded-2xl p-7 shadow-sm border border-brand-muted/60 reveal" style="transition-delay: 0.1s">
                     <div class="w-11 h-11 rounded-full bg-brand-cream flex items-center justify-center text-xl mb-5 border border-brand-dark/10">💜</div>
-                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Acolhimento Especializado</h3>
+                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Respeito à Fé</h3>
                     <p class="text-sm text-brand-soft leading-relaxed">
-                        Atendemos homens, mulheres e meninas (+14) que vivenciam ou vivenciaram situações de abuso,
-                        violência doméstica ou relacionamentos abusivos — dentro ou fora do casamento.
+                        O acolhimento <b>não substitui</b> o atendimento psicológico, psiquiátrico ou jurídico,
+                        mas atua como um <b>importante suporte</b> complementar. <b>Respeitamos</b> a dimensão espiritual
+                        e as convicções individuais de cada pessoa, sem qualquer imposição religiosa.
+                        Nosso objetivo é <b>fortalecer a esperança</b>, promover o <b>equilíbrio emocional</b> e
+                        <b>apoiar o desenvolvimento pessoal</b> e a recuperação de acordo com a fé ou visão de mundo de cada um.
+
                     </p>
                 </div>
-
                 <div class="bg-brand-light rounded-2xl p-7 shadow-sm border border-brand-muted/60 reveal" style="transition-delay: 0.2s">
                     <div class="w-11 h-11 rounded-full bg-brand-cream flex items-center justify-center text-xl mb-5 border border-brand-dark/10">🔒</div>
                     <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Gratuito e Sigiloso</h3>
                     <p class="text-sm text-brand-soft leading-relaxed">
-                        Nosso atendimento é 100% online, gratuito e estritamente sigiloso. Suas informações nunca
-                        serão compartilhadas. Você pode usar um pseudônimo se preferir.
+                        Nosso atendimento é 100% online, totalmente gratuito e estritamente sigiloso. Você tem direito
+                        a três sessões de acolhimento. Suas informações nunca serão compartilhadas.
                     </p>
                 </div>
-
                 <div class="bg-brand-light rounded-2xl p-7 shadow-sm border border-brand-muted/60 reveal" style="transition-delay: 0.3s">
                     <div class="w-11 h-11 rounded-full bg-brand-cream flex items-center justify-center text-xl mb-5 border border-brand-dark/10">🌱</div>
                     <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Equipe Qualificada</h3>
@@ -165,15 +181,12 @@
                 </div>
             </div>
 
-            <!-- Frase de impacto -->
             <div class="mt-16 text-center reveal">
                 <p class="font-cursive text-4xl md:text-5xl text-brand-dark leading-snug max-w-3xl mx-auto">
                     "Um gesto simples pode abrir caminhos de cuidado,<br>e novas histórias podem começar a ser escritas."
                 </p>
                 <div class="mt-6 flex justify-center">
-                    <div class="w-12 h-18 flex items-center justify-center text-white text-lg">
-                        <img src="/assets/images/selos2.png" alt="Ministério Acolher" class="h-18 w-auto rounded-full shadow">
-                    </div>
+                    <img src="/assets/images/selos2.png" alt="Selo Ministério Acolher" class="h-16 w-auto">
                 </div>
             </div>
         </div>
@@ -181,9 +194,9 @@
 
 
     <!-- ══════════════════════════════════════════════════
-         EQUIPE
+                        EQUIPE
     ══════════════════════════════════════════════════ -->
-    <section id="equipe" class="py-20 px-4 bg-brand-light">
+    <section id="equipe" role="region" aria-label="Nossa Equipe" class="py-20 px-4 bg-brand-light">
         <div class="max-w-6xl mx-auto">
 
             <div class="ornament-divider mb-4 reveal">
@@ -191,84 +204,81 @@
             </div>
             <p class="text-center text-brand-soft text-sm mb-12 reveal">Cada profissional é direcionado de acordo com o seu perfil e necessidade.</p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                <!-- Agda -->
-                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal" style="transition-delay: 0.05s">
-                    <div class="w-20 h-20 avatar-ring mx-auto mb-4">
-                        <div class="avatar-inner w-full h-full">
-                            <span class="text-3xl">🌸</span>
-                        </div>
-                    </div>
-                    <h4 class="font-serif font-bold text-brand-dark text-lg">Agda</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">Acolhimento geral para mulheres em busca de apoio emocional e escuta segura</p>
-                    <div class="mt-4 pt-4 border-t border-brand-muted/60">
-                        <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-medium border border-rose-100">Mulheres</span>
-                    </div>
-                    <a href="https://wa.me/5561996266348" target="_blank" class="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-brand-dark bg-brand-cream hover:bg-emerald-50 py-2 px-3 rounded-lg border border-brand-muted transition">
-                        <span>📞</span> (61) 9 9626-6348
-                    </a>
-                </div>
-
-                <!-- Gabriela -->
-                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal" style="transition-delay: 0.10s">
-                    <div class="w-20 h-20 avatar-ring mx-auto mb-4">
-                        <div class="avatar-inner w-full h-full">
-                            <span class="text-3xl">🌺</span>
-                        </div>
-                    </div>
-                    <h4 class="font-serif font-bold text-brand-dark text-lg">Gabriela</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">Acolhimento geral para mulheres em processos de cura emocional e fortalecimento</p>
-                    <div class="mt-4 pt-4 border-t border-brand-muted/60">
-                        <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-medium border border-rose-100">Mulheres</span>
-                    </div>
-                    <a href="https://wa.me/5585984355097" target="_blank" class="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-brand-dark bg-brand-cream hover:bg-emerald-50 py-2 px-3 rounded-lg border border-brand-muted transition">
-                        <span>📞</span> (85) 9 8435-5097
-                    </a>
-                </div>
-
-                <!-- Kelly -->
-                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal" style="transition-delay: 0.15s">
-                    <div class="w-20 h-20 avatar-ring mx-auto mb-4">
-                        <div class="avatar-inner w-full h-full">
-                            <span class="text-3xl">🌷</span>
-                        </div>
-                    </div>
-                    <h4 class="font-serif font-bold text-brand-dark text-lg">Kelly</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">Especialista no acolhimento de mulheres e meninas (+14) vítimas de abuso e violência doméstica</p>
-                    <div class="mt-4 pt-4 border-t border-brand-muted/60">
-                        <span class="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-medium border border-purple-100">Especialista em Abuso</span>
-                    </div>
-                    <a href="https://wa.me/5551999336247" target="_blank" class="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-brand-dark bg-brand-cream hover:bg-emerald-50 py-2 px-3 rounded-lg border border-brand-muted transition">
-                        <span>📞</span> (51) 9 9933-6247
-                    </a>
-                </div>
+            <!-- Mudança aqui: de grid para flex centralizado -->
+            <div class="flex flex-wrap justify-center gap-6">
 
                 <!-- Matheus -->
-                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal" style="transition-delay: 0.20s">
+                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal max-w-sm w-full" style="transition-delay: 0.05s" role="button" tabindex="0" aria-label="Ver perfil de Matheus">
                     <div class="w-20 h-20 avatar-ring mx-auto mb-4">
                         <div class="avatar-inner w-full h-full">
-                            <span class="text-3xl">🌿</span>
+                            <img src="/assets/images/matheus.jpg" alt="Matheus" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <span class="text-3xl hidden">🌿</span>
                         </div>
                     </div>
                     <h4 class="font-serif font-bold text-brand-dark text-lg">Matheus</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">Acolhimento masculino: escuta segura para homens em situações de violência, crise ou busca por equilíbrio</p>
+                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">
+                        <b>Acolhimento para homens</b> que vivenciam ou vivenciaram violência doméstica
+                        no casamento, que estão divorciados ou em processo de separação,
+                        e também para aqueles que sofreram abuso sexual em qualquer fase da vida,
+                        fora do contexto conjugal.
+                    </p>
                     <div class="mt-4 pt-4 border-t border-brand-muted/60">
                         <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium border border-blue-100">Homens</span>
                     </div>
-                    <a href="https://wa.me/5548996685580" target="_blank" class="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-brand-dark bg-brand-cream hover:bg-emerald-50 py-2 px-3 rounded-lg border border-brand-muted transition">
-                        <span>📞</span> (48) 9 9668-5580
-                    </a>
                 </div>
+
+                <!-- Agda & Gabriela -->
+                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal max-w-sm w-full" style="transition-delay: 0.10s" role="button" tabindex="0" aria-label="Ver perfil de Agda e Gabriela">
+                    <!-- Contêiner das Fotos Lado a Lado -->
+                    <div class="flex justify-center gap-4 mb-4">
+                        <!-- Foto Agda -->
+                        <div class="w-20 h-20 avatar-ring">
+                            <div class="avatar-inner w-full h-full">
+                                <img src="/assets/images/agda.png" alt="Agda" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="text-3xl hidden">🌸</span>
+                            </div>
+                        </div>
+                        <!-- Foto Gabriela -->
+                        <div class="w-20 h-20 avatar-ring">
+                            <div class="avatar-inner w-full h-full">
+                                <img src="/assets/images/gabriela.jpg" alt="Gabriela" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="text-3xl hidden">🌺</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="font-serif font-bold text-brand-dark text-lg">Agda & Gabriela</h4>
+                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">
+                        <b>Acolhimento e apoio emocional para mulheres</b> que vivenciaram ou vivenciam violência doméstica ou em seus relacionamentos conjugais. Assistência com escuta segura para mulheres divorciadas ou em processo de divórcio.
+                    </p>
+                    <div class="mt-4 pt-4 border-t border-brand-muted/60">
+                        <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-medium border border-rose-100">Mulheres</span>
+                    </div>
+                </div>
+
+                <!-- Kelly -->
+                <div class="prof-card bg-brand-light rounded-2xl p-6 text-center border border-brand-muted/60 shadow-sm reveal max-w-sm w-full" style="transition-delay: 0.20s" role="button" tabindex="0" aria-label="Ver perfil de Kelly">
+                    <div class="w-20 h-20 avatar-ring mx-auto mb-4">
+                        <div class="avatar-inner w-full h-full">
+                            <img src="/assets/images/kelly.jpg" alt="Kelly" class="w-full h-full object-cover rounded-full" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <span class="text-3xl hidden">🌷</span>
+                        </div>
+                    </div>
+                    <h4 class="font-serif font-bold text-brand-dark text-lg">Kelly</h4>
+                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">Acolhimento para mulheres que já sofreram <b>abuso sexual</b> em alguma fase da vida fora do contexto do casamento.</p>
+                    <div class="mt-4 pt-4 border-t border-brand-muted/60">
+                        <span class="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-medium border border-purple-100">Especialista em atendimento a vítimas de Abuso</span>
+                    </div>
+                </div>
+
+                <!-- Shirley — OCULTA da página pública, só aparece após triagem -->
 
             </div>
 
-            <!-- Nota de segurança -->
             <div class="mt-10 bg-brand-cream/60 border border-brand-dark/10 rounded-xl px-6 py-4 flex items-start gap-3 max-w-2xl mx-auto reveal">
                 <span class="text-base mt-0.5">🔐</span>
                 <p class="text-xs text-brand-soft leading-relaxed">
-                    Você também pode entrar em contato diretamente com qualquer profissional pelo WhatsApp acima,
-                    ou preencher o formulário abaixo para ser direcionado automaticamente de acordo com a sua necessidade.
+                    O contato com os profissionais será feito logo após o preenchimento do formulário de triagem abaixo,
+                    garantindo que você seja direcionado à pessoa mais indicada para o seu momento.
                 </p>
             </div>
         </div>
@@ -276,379 +286,166 @@
 
 
     <!-- ══════════════════════════════════════════════════
-         FORMULÁRIO DE ACOLHIMENTO (STEPPER)
+    ║       FORMULÁRIO DE ACOLHIMENTO
     ══════════════════════════════════════════════════ -->
-    <section id="formulario" class="py-20 px-4 bg-brand-cream/30">
-        <div class="max-w-3xl mx-auto">
+    <section id="formulario" role="region" aria-label="Formulário de Acolhimento" class="py-20 px-4 bg-brand-cream/30">
+        <div class="max-w-2xl mx-auto">
 
             <div class="ornament-divider mb-4 reveal">
                 <span class="font-title text-xs tracking-[0.25em] text-brand-dark uppercase">Formulário de Acolhimento</span>
             </div>
             <p class="text-center text-brand-soft text-sm mb-10 reveal">
-                Preencha com atenção em um ambiente privado, seguro e tranquilo. Todas as informações são sigilosas.
+                Preencha em um ambiente privado, seguro e tranquilo. Todas as informações são sigilosas e o atendimento é <strong class="text-brand-dark">totalmente gratuito</strong>.
             </p>
 
             <div class="bg-brand-light rounded-2xl shadow-xl border border-brand-muted/60 overflow-hidden reveal">
 
-                <!-- Stepper Header -->
-                <div class="bg-brand-cream/50 border-b border-brand-muted/60 px-6 py-4">
-                    <div class="flex items-center justify-between max-w-sm mx-auto">
+                <form id="acolherForm" action="/api/cadastro" method="POST" class="p-6 md:p-8 space-y-6" novalidate aria-label="Formulário de acolhimento">
 
-                        <div class="step-indicator flex flex-col items-center gap-1" data-step="1">
-                            <div class="w-8 h-8 rounded-full border-2 border-brand-dark bg-brand-dark text-white text-xs font-bold flex items-center justify-center step-circle">1</div>
-                            <span class="text-xs text-brand-dark font-semibold hidden sm:block">Perfil</span>
-                        </div>
-                        <div class="flex-1 h-px bg-brand-muted mx-2 step-line" id="line-1-2"></div>
-                        <div class="step-indicator flex flex-col items-center gap-1" data-step="2">
-                            <div class="w-8 h-8 rounded-full border-2 border-brand-muted text-brand-muted text-xs font-bold flex items-center justify-center step-circle">2</div>
-                            <span class="text-xs text-brand-muted hidden sm:block">Contexto</span>
-                        </div>
-                        <div class="flex-1 h-px bg-brand-muted mx-2 step-line" id="line-2-3"></div>
-                        <div class="step-indicator flex flex-col items-center gap-1" data-step="3">
-                            <div class="w-8 h-8 rounded-full border-2 border-brand-muted text-brand-muted text-xs font-bold flex items-center justify-center step-circle">3</div>
-                            <span class="text-xs text-brand-muted hidden sm:block">Contrato</span>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Formulário -->
-                <form id="acolherForm" action="/api/cadastro" method="POST" class="p-6 md:p-8">
-
-                    <!-- ── ETAPA 1: Perfil e Identificação ── -->
-                    <div class="step-panel active" id="step-1">
-                        <h3 class="font-serif text-xl font-bold text-brand-dark mb-1">Quem precisa de atendimento?</h3>
-                        <p class="text-xs text-brand-soft mb-6">Isso nos ajuda a direcionar você ao profissional mais adequado.</p>
-
-                        <!-- Triagem -->
-                        <div class="mb-6">
-                            <label class="block text-xs font-bold text-brand-dark uppercase mb-2 tracking-wider">Perfil de atendimento *</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="perfil_triagem" value="homem" class="peer sr-only" required>
-                                    <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
-                                        <span class="text-base block mb-1">🌿</span>
-                                        <strong class="block text-brand-dark text-sm">Homem</strong>
-                                        <span class="text-xs text-brand-soft">Acolhimento masculino</span>
-                                    </div>
-                                </label>
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="perfil_triagem" value="mulher" class="peer sr-only">
-                                    <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
-                                        <span class="text-base block mb-1">🌸</span>
-                                        <strong class="block text-brand-dark text-sm">Mulher</strong>
-                                        <span class="text-xs text-brand-soft">Acolhimento geral</span>
-                                    </div>
-                                </label>
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="perfil_triagem" value="vitima_abuso" class="peer sr-only">
-                                    <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
-                                        <span class="text-base block mb-1">🛡️</span>
-                                        <strong class="block text-brand-dark text-sm">Mulher / Menina (+14) — Abuso</strong>
-                                        <span class="text-xs text-brand-soft">Violência doméstica · Abuso sexual</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Aviso especial para vítimas de abuso -->
-                        <div id="aviso-abuso" class="hidden mb-5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 leading-relaxed">
-                            🛡️ <strong>Você pode usar um codinome ou pseudônimo</strong> no campo de nome abaixo — sua identidade real não é obrigatória. Seu sigilo e segurança são nossa prioridade absoluta.
-                        </div>
-
-                        <!-- Dados pessoais -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label id="label-nome" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Nome completo *</label>
-                                <input type="text" name="nome" id="campo-nome" required placeholder="Como gostaria de ser chamada(o)" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Data de nascimento *</label>
-                                <input type="date" name="data_nascimento" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Cidade e Estado *</label>
-                                <input type="text" name="localizacao" placeholder="Ex: Porto Alegre – RS" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">WhatsApp *</label>
-                                <input type="text" name="whatsapp" placeholder="(00) 9 0000-0000" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">E-mail</label>
-                                <input type="email" name="email" placeholder="seu@email.com" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Contato de emergência *</label>
-                                <input type="text" name="contato_emergencia" placeholder="Nome, parentesco e número" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                            </div>
-                        </div>
-
-                        <div class="mt-6 flex justify-end">
-                            <button type="button" onclick="irParaEtapa(2)" class="bg-brand-dark text-white font-semibold px-7 py-2.5 rounded-xl hover:bg-brand-deep transition text-sm">
-                                Continuar →
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <!-- ── ETAPA 2: Contexto Clínico e Social ── -->
-                    <div class="step-panel" id="step-2">
-                        <h3 class="font-serif text-xl font-bold text-brand-dark mb-1">Contexto e saúde emocional</h3>
-                        <p class="text-xs text-brand-soft mb-6">Nos ajude a entender melhor sua situação atual.</p>
-
-                        <div class="space-y-5">
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Estado civil *</label>
-                                    <select name="estado_civil" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Solteira(o)</option>
-                                        <option>Casada(o)</option>
-                                        <option>Divorciada(o)</option>
-                                        <option>Viúva(o)</option>
-                                        <option>União Estável</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Escolaridade *</label>
-                                    <select name="escolaridade" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Fundamental Incompleto</option>
-                                        <option>Fundamental Completo</option>
-                                        <option>Ensino Médio Incompleto</option>
-                                        <option>Ensino Médio Completo</option>
-                                        <option>Ensino Técnico</option>
-                                        <option>Ensino Superior Incompleto</option>
-                                        <option>Ensino Superior Completo</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Situação de trabalho *</label>
-                                    <select name="trabalho" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Trabalho formal</option>
-                                        <option>Trabalho informal / autônomo</option>
-                                        <option>Não trabalho no momento</option>
-                                        <option>Sou estudante</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Tem rede de apoio? *</label>
-                                    <select name="rede_apoio" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Sim (família, amigos, igreja...)</option>
-                                        <option>Parcialmente</option>
-                                        <option>Não tenho rede de apoio</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">O que te traz para a terapia nesse momento? *</label>
-                                <textarea name="motivo_terapia" rows="3" required placeholder="Escreva com suas próprias palavras, sem pressa. Não há resposta certa ou errada." class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition resize-none"></textarea>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Há quanto tempo isso te incomoda? *</label>
-                                    <select name="tempo_incomodo" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Dias</option>
-                                        <option>Semanas</option>
-                                        <option>Meses</option>
-                                        <option>Anos</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Já fez terapia antes? *</label>
-                                    <select name="ja_fez_terapia" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Sim</option>
-                                        <option>Não</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Se sim — duração e abordagem</label>
-                                    <input type="text" name="detalhes_terapia_anterior" placeholder="Ex: 6 meses, TCC / Não sei a abordagem" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Diagnóstico médico *</label>
-                                    <input type="text" name="diagnostico_medico" placeholder="Se tiver, qual? Se não, escreva 'Não'" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Medicação prescrita</label>
-                                    <input type="text" name="medicacao" placeholder="Nome dos medicamentos ou 'Não faço uso'" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                </div>
-                            </div>
-
-                            <!-- Escalas visuais -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-1">
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-3">Qualidade do sono *
-                                        <span class="font-normal text-brand-soft">(1 Péssimo → 10 Ótimo)</span>
-                                    </label>
-                                    <div class="flex items-center gap-3">
-                                        <input type="range" name="escala_sono" min="1" max="10" value="5" class="flex-1" oninput="document.getElementById('val-sono').innerText = this.value">
-                                        <span id="val-sono" class="text-sm font-bold text-brand-dark w-5 text-right">5</span>
-                                    </div>
-                                    <div class="flex justify-between text-[10px] text-brand-soft/60 mt-1 px-0.5">
-                                        <span>Péssimo</span><span>Ótimo</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-3">Nível de estresse hoje *
-                                        <span class="font-normal text-brand-soft">(1 Baixo → 10 Altíssimo)</span>
-                                    </label>
-                                    <div class="flex items-center gap-3">
-                                        <input type="range" name="escala_estresse" min="1" max="10" value="5" class="flex-1" oninput="document.getElementById('val-estresse').innerText = this.value">
-                                        <span id="val-estresse" class="text-sm font-bold text-brand-dark w-5 text-right">5</span>
-                                    </div>
-                                    <div class="flex justify-between text-[10px] text-brand-soft/60 mt-1 px-0.5">
-                                        <span>Baixo</span><span>Altíssimo</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="mt-6 flex justify-between">
-                            <button type="button" onclick="irParaEtapa(1)" class="text-brand-soft text-sm font-medium hover:text-brand-dark transition px-2">← Voltar</button>
-                            <button type="button" onclick="irParaEtapa(3)" class="bg-brand-dark text-white font-semibold px-7 py-2.5 rounded-xl hover:bg-brand-deep transition text-sm">
-                                Continuar →
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <!-- ── ETAPA 3: Ajustes e Consentimento ── -->
-                    <div class="step-panel" id="step-3">
-                        <h3 class="font-serif text-xl font-bold text-brand-dark mb-1">Valores, horários e consentimento</h3>
-                        <p class="text-xs text-brand-soft mb-6">Estas informações permitem ajustar o atendimento de forma justa e acessível.</p>
-
-                        <div class="space-y-5">
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Renda atual *</label>
-                                    <select name="renda" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Sem renda</option>
-                                        <option>Até um salário mínimo</option>
-                                        <option>De 1 a 2 salários mínimos</option>
-                                        <option>Acima de 2 salários mínimos</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Consegue pagar R$ 150 por sessão? *</label>
-                                    <select name="condicao_pagamento" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Sim</option>
-                                        <option>Sim, com certa dificuldade</option>
-                                        <option>Preciso de valor social</option>
-                                        <option>Gostaria de conversar sobre possibilidades</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Faixa de valor que consegue investir *</label>
-                                    <input type="text" name="faixa_confortavel" placeholder="Ex: R$ 80 a R$ 100 por sessão" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Frequência de pagamento *</label>
-                                    <select name="frequencia_pagamento" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Semanalmente</option>
-                                        <option>Quinzenalmente</option>
-                                        <option>Mensalmente</option>
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Preferência de horário * (Atendimento 100% online)</label>
-                                    <select name="preferencia_horario" required class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                        <option value="">Selecione...</option>
-                                        <option>Manhã</option>
-                                        <option>Tarde</option>
-                                        <option>Noite</option>
-                                        <option>Domingos</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Objetivos terapêuticos -->
-                            <div>
-                                <label class="block text-xs font-bold text-brand-dark uppercase mb-3">O que espera alcançar com a terapia? *</label>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                    <div>
-                                        <input type="checkbox" id="obj1" name="objetivos" value="Autoconhecimento" class="custom-check">
-                                        <label for="obj1" class="check-label"><span class="check-box"></span> Autoconhecimento</label>
-                                    </div>
-                                    <div>
-                                        <input type="checkbox" id="obj2" name="objetivos" value="Redução de ansiedade" class="custom-check">
-                                        <label for="obj2" class="check-label"><span class="check-box"></span> Reduzir ansiedade</label>
-                                    </div>
-                                    <div>
-                                        <input type="checkbox" id="obj3" name="objetivos" value="Lidar com depressão" class="custom-check">
-                                        <label for="obj3" class="check-label"><span class="check-box"></span> Depressão / tristeza</label>
-                                    </div>
-                                    <div>
-                                        <input type="checkbox" id="obj4" name="objetivos" value="Melhorar relacionamentos" class="custom-check">
-                                        <label for="obj4" class="check-label"><span class="check-box"></span> Relacionamentos</label>
-                                    </div>
-                                    <div>
-                                        <input type="checkbox" id="obj5" name="objetivos" value="Organização emocional" class="custom-check">
-                                        <label for="obj5" class="check-label"><span class="check-box"></span> Equilíbrio emocional</label>
-                                    </div>
-                                    <div>
-                                        <input type="checkbox" id="obj6" name="objetivos" value="Superação de trauma" class="custom-check">
-                                        <label for="obj6" class="check-label"><span class="check-box"></span> Superar traumas</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Termos -->
-                            <div class="bg-brand-cream/50 rounded-xl border border-brand-dark/10 p-5 space-y-4">
-                                <h4 class="text-xs font-bold text-brand-dark uppercase tracking-wider">Termos de consentimento</h4>
-                                <label class="flex items-start gap-3 cursor-pointer group">
-                                    <input type="checkbox" name="termo_sigilo" id="termo_sigilo" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
-                                    <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
-                                        Compreendo que a psicoterapia é um processo de apoio psicológico, não substitui tratamento médico,
-                                        e que todas as informações serão mantidas em <strong class="text-brand-dark">sigilo profissional absoluto</strong>. *
+                    <!-- Perfil de triagem -->
+                    <fieldset>
+                        <legend class="block text-xs font-bold text-brand-dark uppercase mb-3 tracking-wider">Perfil de atendimento *</legend>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="perfil_triagem" value="homem" class="peer sr-only" required>
+                                <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
+                                    <span class="text-base block mb-1">🌿</span>
+                                    <strong class="block text-brand-dark text-sm">Acolhimento masculino</strong>
+                                    <span class="text-xs text-brand-soft">
+                                        <ul class="list-disc list-inside">
+                                            <li>Violência doméstica</li>
+                                            <li>Divórcio</li>
+                                            <li>Vítima de abuso sexual</li>
+                                        </ul>
                                     </span>
-                                </label>
-                                <label class="flex items-start gap-3 cursor-pointer group">
-                                    <input type="checkbox" name="termo_faltas" id="termo_faltas" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
-                                    <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
-                                        Confirmo o acordo com valores e horários e compreendo que o não comparecimento sem aviso de
-                                        <strong class="text-brand-dark">24h de antecedência não isenta o pagamento da sessão</strong>
-                                        (máximo de 2 faltas seguidas sob risco de perda da vaga). *
+                                </div>
+                            </label>
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="perfil_triagem" value="mulher" class="peer sr-only">
+                                <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
+                                    <span class="text-base block mb-1">🌸</span>
+                                    <strong class="block text-brand-dark text-sm">Acolhimento feminino</strong>
+                                    <span class="text-xs text-brand-soft">
+
+                                        <ul class="list-disc list-inside">
+                                            <li>Violência doméstica</li>
+                                            <li>Divórcio</li>
+                                        </ul>
+
                                     </span>
-                                </label>
-                            </div>
-
+                                </div>
+                            </label>
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="perfil_triagem" value="vitima_abuso" class="peer sr-only">
+                                <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
+                                    <span class="text-base block mb-1">🛡️</span>
+                                    <strong class="block text-brand-dark text-sm">Mulher</strong>
+                                    <span class="text-xs text-brand-soft">Vítima de abuso sexual fora do casamento</span>
+                                </div>
+                            </label>
                         </div>
+                    </fieldset>
 
-                        <div class="mt-6 flex justify-between items-center">
-                            <button type="button" onclick="irParaEtapa(2)" class="text-brand-soft text-sm font-medium hover:text-brand-dark transition px-2">← Voltar</button>
-                            <button type="submit" id="btn-submit" class="bg-brand-dark text-white font-serif font-semibold px-8 py-3 rounded-xl hover:bg-brand-deep transition text-sm shadow-lg flex items-center gap-2">
-                                <span id="btn-texto">Enviar formulário</span>
-                                <span id="btn-spinner" class="hidden">⏳</span>
-                            </button>
+                    <!-- Aviso sigilo para vítimas de abuso -->
+                    <div id="aviso-abuso" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 leading-relaxed">
+                        🛡️ <strong>Você pode usar um codinome ou pseudônimo</strong> no campo de nome abaixo — sua identidade real não é obrigatória. Seu sigilo e segurança são nossa prioridade absoluta.
+                    </div>
+
+                    <!-- Dados pessoais -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label id="label-nome" for="campo-nome" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Nome completo *</label>
+                            <input type="text" id="campo-nome" name="nome" required aria-required="true" placeholder="Como gostaria de ser chamado(a)" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                        </div>
+                        <div>
+                            <label for="campo-nascimento" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Data de nascimento *</label>
+                            <input type="date" id="campo-nascimento" name="data_nascimento" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                        </div>
+                        <div>
+                            <label for="campo-localizacao" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Cidade e Estado *</label>
+                            <input type="text" id="campo-localizacao" name="localizacao" placeholder="Ex: Porto Alegre – RS" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                        </div>
+                        <div>
+                            <label for="campo-whatsapp" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">WhatsApp *</label>
+                            <input type="text" id="campo-whatsapp" name="whatsapp" placeholder="(00) 9 0000-0000" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                        </div>
+                        <div>
+                            <label for="campo-estado-civil" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Estado civil *</label>
+                            <select id="campo-estado-civil" name="estado_civil" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="">Selecione...</option>
+                                <option>Solteira(o)</option>
+                                <option>Casada(o)</option>
+                                <option>Divorciada(o)</option>
+                                <option>Viúva(o)</option>
+                                <option>União Estável</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="campo-rede-apoio" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Tem rede de apoio? *</label>
+                            <select id="campo-rede-apoio" name="rede_apoio" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="">Selecione...</option>
+                                <option>Sim (família, amigos, igreja...)</option>
+                                <option>Parcialmente</option>
+                                <option>Não tenho rede de apoio</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="campo-horario" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Preferência de horário * (Atendimento 100% online)</label>
+                            <select id="campo-horario" name="preferencia_horario" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="">Selecione...</option>
+                                <option>Manhã</option>
+                                <option>Tarde</option>
+                                <option>Noite</option>
+                                <option>Domingos</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="campo-motivo" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">O que te traz para o acolhimento nesse momento? *</label>
+                            <textarea id="campo-motivo" name="motivo_terapia" rows="3" required aria-required="true" placeholder="Escreva com suas próprias palavras, sem pressa. Não há resposta certa ou errada." class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition resize-none"></textarea>
                         </div>
                     </div>
+
+                    <!-- Termos de consentimento -->
+                    <div class="bg-brand-cream/50 rounded-xl border border-brand-dark/10 p-5 space-y-4">
+                        <h4 class="text-xs font-bold text-brand-dark uppercase tracking-wider">Termos de consentimento</h4>
+
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <input type="checkbox" name="termo_sigilo" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
+                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
+                                Compreendo que o acolhimento não substitui tratamento psicológico contínuo,
+                                e que todas as informações serão mantidas em <strong class="text-brand-dark">sigilo profissional absoluto</strong>.*
+                            </span>
+                        </label>
+
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <input type="checkbox" name="termo_sessoes" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
+                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
+                                Estou ciente de que o acolhimento oferecido pelo Ministério Acolher compreende
+                                <strong class="text-brand-dark">três sessões de aproximadamente 60 minutos</strong> cada.
+                                Caso deseje continuar o processo terapêutico após esse período, poderei fazê-lo mediante
+                                acordo direto com o profissional que me atenderá. *
+                            </span>
+                        </label>
+
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <input type="checkbox" name="termo_gratuidade" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
+                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
+                                Compreendo que o atendimento do Ministério Acolher é <strong class="text-brand-dark">totalmente gratuito</strong>
+                                e que tenho direito a três sessões de acolhimento.*
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Botão de envio -->
+                    <button type="submit" id="btn-submit" class="w-full bg-brand-dark text-white font-serif font-semibold py-3.5 px-4 rounded-xl hover:bg-brand-deep transition text-sm shadow-lg flex items-center justify-center gap-2">
+                        <span id="btn-texto">Enviar formulário de acolhimento</span>
+                        <span id="btn-spinner" class="hidden">⏳</span>
+                    </button>
 
                 </form>
 
-                <!-- Estado de sucesso (oculto por padrão) -->
-                <div id="sucesso" class="hidden p-10 text-center">
-                    <div class="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center text-3xl mx-auto mb-5">✅</div>
-                    <h3 class="font-serif text-2xl font-bold text-brand-dark mb-2">Formulário recebido</h3>
-                    <p class="text-brand-soft text-sm leading-relaxed max-w-md mx-auto mb-6">
-                        Suas informações foram guardadas com segurança. Nossa equipe entrará em contato em breve,
-                        mantendo o sigilo absoluto da sua história.
-                    </p>
-                    <p class="text-xs text-brand-soft/60">Você também pode entrar em contato diretamente com os profissionais pelo WhatsApp acima.</p>
-                </div>
+                <!-- Estado de sucesso -->
+                <div id="sucesso" class="hidden p-10 text-center" aria-live="polite" aria-atomic="true"></div>
 
             </div>
         </div>
@@ -663,7 +460,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <div>
                     <div class="flex items-center gap-2 mb-3">
-                        <img src="/assets/images/logo-lado.png" alt="Ministério Acolher" class="h-12 w-auto brightness-0 invert">
+                        <img src="/assets/images/logo-lado.png" alt="Ministério Acolher" class="h-12 w-auto">
                     </div>
                     <p class="text-xs text-brand-light/60 leading-relaxed">
                         Um espaço seguro de escuta, cuidado e respeito para quem precisa ser acolhido.
@@ -671,13 +468,10 @@
                     </p>
                 </div>
                 <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3">Canais de Contato</h5>
-                    <div class="space-y-1.5 text-xs text-brand-light/70">
-                        <p>📞 Agda: <a href="https://wa.me/5561996266348" class="hover:text-white transition">(61) 9 9626-6348</a></p>
-                        <p>📞 Gabriela: <a href="https://wa.me/5585984355097" class="hover:text-white transition">(85) 9 8435-5097</a></p>
-                        <p>📞 Kelly: <a href="https://wa.me/5551999336247" class="hover:text-white transition">(51) 9 9933-6247</a></p>
-                        <p>📞 Matheus: <a href="https://wa.me/5548996685580" class="hover:text-white transition">(48) 9 9668-5580</a></p>
-                    </div>
+                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3">Contato Direto</h5>
+                    <p class="text-xs text-brand-light/60 leading-relaxed">
+                        Os contatos dos profissionais são disponibilizados após o preenchimento do formulário de acolhimento acima.
+                    </p>
                 </div>
                 <div>
                     <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3">Compartilhe</h5>
@@ -689,15 +483,20 @@
                     </button>
                 </div>
             </div>
-            <div class="border-t border-brand-light/10 pt-6 text-center text-xs text-brand-light/30">
-                © 2025 Ministério Acolher · Todos os direitos reservados · Atendimento sigiloso e ético
+            <div class="border-t border-brand-light/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-brand-light/30">
+                <span>© 2025 Ministério Acolher · Todos os direitos reservados · Atendimento sigiloso e ético</span>
+                <div class="flex items-center gap-4">
+                    <a href="mailto:acessibilidade@acolher.life" class="text-brand-light/40 hover:text-brand-light/70 transition underline underline-offset-2" aria-label="Reportar problema de acessibilidade por e-mail">
+                        ♿ Acessibilidade
+                    </a>
+                    <span class="text-brand-light/20">·</span>
+                    <span class="text-brand-light/30" title="Este site segue as diretrizes WCAG 2.1 nível AA">WCAG 2.1 AA</span>
+                </div>
             </div>
         </div>
     </footer>
 
-
     <script src="/js/main.js"></script>
-
 </body>
 
 </html>

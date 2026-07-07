@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const mysql = require('mysql2/promise');
+const session = require('express-session'); // NOVO
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +11,18 @@ const PORT = process.env.PORT || 3000;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ─── Sessão (NOVO) ────────────────────────────────────────────────────────────
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 4, // 4 horas
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' // exige HTTPS em produção
+    }
+}));
 
 // ─── Pool de conexão MySQL ───────────────────────────────────────────────────
 const dbPool = mysql.createPool({
@@ -53,6 +66,10 @@ async function inicializarBanco() {
 }
 
 inicializarBanco();
+
+// ─── Rotas do painel administrativo (NOVO) ───────────────────────────────────
+const adminRoutes = require('./routes/admin')(dbPool);
+app.use('/admin', adminRoutes);
 
 // ─── Configuração do Nodemailer (Brevo) ─────────────────────────────────────
 const transporter = nodemailer.createTransport({

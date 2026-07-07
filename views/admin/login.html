@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login — Painel Ministério Acolher</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #F4EFE6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 360px;
+        }
+
+        h1 {
+            color: #7A1C1C;
+            font-size: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #2C1A1A;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #7A1C1C;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #5f1515;
+        }
+
+        #erro {
+            color: #b00020;
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>
+            <img src="/assets/images/acolher-lado.png" alt="Ministério Acolher" style="height: 48px; display: block; margin: 0 auto 12px;"> 
+            Painel Administrativo
+        </h1>
+        <div id="erro"></div>
+        <form id="formLogin">
+            <label for="usuario">Usuário</label>
+            <input type="text" id="usuario" name="usuario" required autocomplete="username">
+
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="senha" required autocomplete="current-password">
+
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('formLogin');
+        const erroDiv = document.getElementById('erro');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            erroDiv.style.display = 'none';
+
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+
+            try {
+                const resp = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, senha })
+                });
+                const data = await resp.json();
+
+                if (data.ok) {
+                    window.location.href = '/admin';
+                } else {
+                    erroDiv.textContent = data.mensagem || 'Erro ao entrar.';
+                    erroDiv.style.display = 'block';
+                }
+            } catch (err) {
+                erroDiv.textContent = 'Erro de conexão. Tente novamente.';
+                erroDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

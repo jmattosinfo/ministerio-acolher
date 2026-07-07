@@ -83,12 +83,9 @@ module.exports = function (dbPool) {
                  ORDER BY total DESC`
             );
 
+            // Busca dados brutos de localização para agregar por estado no JS
             const [localizacaoRows] = await conn.query(
-                `SELECT COALESCE(NULLIF(TRIM(localizacao), ''), 'Não informado') AS chave, COUNT(*) AS total
-                 FROM cadastros ${filtroData}
-                 GROUP BY chave
-                 ORDER BY total DESC
-                 LIMIT 15`
+                `SELECT localizacao FROM cadastros ${filtroData}`
             );
 
             conn.release();
@@ -100,7 +97,7 @@ module.exports = function (dbPool) {
                 estadoCivil: estadoCivilRows,
                 faixaEtaria: calcularFaixasEtarias(nascimentoRows),
                 motivo: agruparMotivos(motivoRows),
-                localizacao: localizacaoRows
+                localizacao: agregarPorEstado(localizacaoRows)
             });
         } catch (err) {
             console.error('❌ Erro ao buscar estatísticas:', err.message);
@@ -158,4 +155,32 @@ function agruparMotivos(linhas) {
         topDez.push({ chave: 'Outros', total: resto });
     }
     return topDez;
+}
+
+// Extrai a UF (sigla do estado) de strings como "Porto Alegre – RS", "SP", etc.
+function extrairUF(localizacao) {
+    if (!localizacao || typeof localizacao !== 'string') return null;
+    const trimmed = localizacao.trim();
+    // Tenta separar por "–" (em dash) ou "-" (hífen)
+    const partes = trimmed.split(/[–-]/).map(s => s.trim());
+    if (partes.length > 1) {
+        const uf = partes[partes.length - 1].toUpperCase();
+        if (/^[A-Z]{2}$/.test(uf)) return uf;
+    }
+    // Se a string inteira for uma UF válida
+    if (/^[A-Z]{2}$/.test(trimmed.toUpperCase())) return trimmed.toUpperCase();
+    return null;
+}
+
+// Agrega os registros de localização por estado (UF)
+function agregarPorEstado(linhas) {
+    const mapa = new Map();
+    linhas.forEach(({ localizacao }) => {
+        const uf = extrairUF(localizacao);
+        const chave = uf || 'Não informado';
+        mapa.set(chave, (mapa.get(chave) || 0) + 1);
+    });
+    return Array.from(mapa.entries())
+        .map(([chave, total]) => ({ chave, total }))
+        .sort((a, b) => b.total - a.total);
 }

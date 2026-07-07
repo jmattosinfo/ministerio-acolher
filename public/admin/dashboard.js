@@ -1,9 +1,29 @@
 // public/admin/dashboard.js
-// Roda no navegador: busca as estatísticas na API e desenha os gráficos.
+// Roda no navegador: busca as estatísticas na API e desenha os gráficos + mapa.
 
 const CORES = ['#7A1C1C', '#C08552', '#4A6C6F', '#D9A441', '#8E9775', '#B0413E', '#5A5A5A', '#3E5C76', '#A16E83', '#6B8F71', '#7A7A7A'];
 
-let graficos = {}; // guarda instâncias do Chart.js para poder destruir/recriar ao trocar filtro
+let graficos = {};
+let mapaLeaflet = null;
+let camadaEstados = null;
+
+// Mapa de cores para o choropleth (do mais claro ao mais escuro)
+function getCorPorContagem(contagem, max) {
+    if (max === 0) return '#F4EFE6';
+    const intensidade = contagem / max;
+    if (intensidade === 0) return '#F4EFE6';
+    if (intensidade <= 0.2) return '#E8D5D5';
+    if (intensidade <= 0.4) return '#D1A8A8';
+    if (intensidade <= 0.6) return '#B87A7A';
+    if (intensidade <= 0.8) return '#9E4D4D';
+    return '#7A1C1C'; // brand-dark
+}
+
+function getCorTexto(contagem, max) {
+    if (max === 0) return '#2C1A1A';
+    const intensidade = contagem / max;
+    return intensidade > 0.4 ? '#FFFFFF' : '#2C1A1A';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados('todos');
@@ -40,7 +60,7 @@ async function carregarDados(periodo) {
         desenharGrafico('graficoSexo', 'doughnut', data.sexo);
         desenharGrafico('graficoEstadoCivil', 'doughnut', data.estadoCivil);
         desenharGrafico('graficoMotivo', 'bar', data.motivo, true);
-        desenharGrafico('graficoLocalizacao', 'bar', data.localizacao, true);
+        desenharMapa(data.localizacao);
     } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
     }
@@ -79,4 +99,118 @@ function desenharGrafico(idCanvas, tipo, linhas, horizontal = false) {
             } : {}
         }
     });
+}
+
+// ─── Mapa Leaflet ──────────────────────────────────────────────────────────
+
+function desenharMapa(dadosEstado) {
+    const container = document.getElementById('mapaLocalizacao');
+    if (!container) return;
+
+    // Cria mapa se não existir
+    if (!mapaLeaflet) {
+        mapaLeaflet = L.map('mapaLocalizacao', {
+            center: [-15.5, -52],
+            zoom: 4.2,
+            minZoom: 3,
+            maxZoom: 7,
+            zoomControl: false,
+            attributionControl: false
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        }).addTo(mapaLeaflet);
+    }
+
+    // Converte dados para lookup
+    const dadosLookup = {};
+    let maxValor = 0;
+    (dadosEstado || []).forEach(({ chave, total }) => {
+        dadosLookup[chave.toUpperCase()] = total;
+        if (total > maxValor) maxValor = total;
+    });
+
+    // Carrega o GeoJSON dos estados brasileiros
+    const geojsonUrl = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/main/geojson/Estados.geojson';
+
+    fetch(geojsonUrl)
+        .then(res => res.json())
+        .then(geojson => {
+            if (camadaEstados) {
+                mapaLeaflet.removeLayer(camadaEstados);
+            }
+
+            camadaEstados = L.geoJSON(geojson, {
+                style: function (feature) {
+                    const sigla = (feature.properties.sigla || feature.properties.uf || '').toUpperCase();
+                    const valor = dadosLookup[sigla] || 0;
+                    return {
+                        fillColor: getCorPorContagem(valor, maxValor),
+                        weight: 1.2,
+                        opacity: 0.8,
+                        color: '#7A5C5C',
+                        fillOpacity: 0.85
+                    };
+                },
+                onEachFeature: function (feature, layer) {
+                    const sigla = (feature.properties.sigla || feature.properties.uf || '').toUpperCase();
+                    const nome = feature.properties.nome || sigla;
+                    const valor = dadosLookup[sigla] || 0;
+
+                    layer.bindTooltip(`<strong>${nome}</strong><br>${valor} pessoa(s) acolhida(s)`, {
+                        sticky: true,
+                        direction: 'top',
+                        offset: [0, -4]
+                    });
+
+                    layer.on('mouseover', function () {
+                        this.setStyle({
+                            weight: 2.5,
+                            color: '#5C1414',
+                            fillOpacity: 1
+                        });
+                    });
+
+                    layer.on('mouseout', function () {
+                        this.setStyle({
+                            weight: 1.2,
+                            color: '#7A5C5C',
+                            fillOpacity: 0.85
+                        });
+                    });
+                }
+            }).addTo(mapaLeaflet);
+
+            // Ajusta o zoom para cobrir o Brasil
+            mapaLeaflet.fitBounds(camadaEstados.getBounds(), { padding: [20, 20] });
+
+            // Atualiza legenda
+            atualizarLegenda(dadosLookup, maxValor);
+        })
+        .catch(err => {
+            console.error('Erro ao carregar GeoJSON dos estados:', err);
+            container.innerHTML = '<p class="text-sm text-red-600 p-4">Erro ao carregar mapa dos estados.</p>';
+        });
+}
+
+function atualizarLegenda(dadosLookup, maxValor) {
+    const legenda = document.getElementById('mapaLegenda');
+    if (!legenda) return;
+
+    const ordenados = Object.entries(dadosLookup)
+        .filter(([_, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1]);
+
+    if (ordenados.length === 0) {
+        legenda.innerHTML = '<span class="text-brand-soft/60 italic">Nenhum dado de localização registrado.</span>';
+        return;
+    }
+
+    legenda.innerHTML = ordenados.map(([uf, total]) => {
+        const cor = getCorPorContagem(total, maxValor);
+        const texto = getCorTexto(total, maxValor);
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style="background:${cor};color:${texto};">${uf} ${total}</span>`;
+    }).join(' ');
 }

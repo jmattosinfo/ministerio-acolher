@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -200,8 +202,9 @@
                 <canvas id="graficoMotivo"></canvas>
             </div>
             <div class="grafico-card">
-                <h2><i data-lucide="map-pin" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Localização (Cidade/Estado)</h2>
-                <canvas id="graficoLocalizacao"></canvas>
+                <h2><i data-lucide="map-pin" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Distribuição por Estado</h2>
+                <div id="mapaLocalizacao" style="height: 380px; border-radius: 8px;"></div>
+                <div id="mapaLegenda" class="flex flex-wrap gap-2 mt-3 text-xs text-brand-soft"></div>
             </div>
         </div>
     </main>

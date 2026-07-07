@@ -107,21 +107,38 @@ function desenharMapa(dadosEstado) {
     const container = document.getElementById('mapaLocalizacao');
     if (!container) return;
 
+    // Força o container a ter tamanho antes de iniciar o Leaflet
+    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        container.style.width = '100%';
+        container.style.height = '380px';
+    }
+
     // Cria mapa se não existir
     if (!mapaLeaflet) {
-        mapaLeaflet = L.map('mapaLocalizacao', {
-            center: [-15.5, -52],
-            zoom: 4.2,
-            minZoom: 3,
-            maxZoom: 7,
-            zoomControl: false,
-            attributionControl: false
-        });
+        try {
+            mapaLeaflet = L.map('mapaLocalizacao', {
+                center: [-15.5, -52],
+                zoom: 4,
+                minZoom: 3,
+                maxZoom: 7,
+                zoomControl: false,
+                attributionControl: false
+            });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
-        }).addTo(mapaLeaflet);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+            }).addTo(mapaLeaflet);
+
+            // Invalida o tamanho após inicialização para evitar erro offsetWidth
+            setTimeout(() => {
+                if (mapaLeaflet) mapaLeaflet.invalidateSize();
+            }, 100);
+        } catch (e) {
+            console.error('Erro ao inicializar mapa Leaflet:', e);
+            container.innerHTML = '<p class="text-sm text-red-600 p-4">Erro ao carregar o mapa.</p>';
+            return;
+        }
     }
 
     // Converte dados para lookup
@@ -132,11 +149,19 @@ function desenharMapa(dadosEstado) {
         if (total > maxValor) maxValor = total;
     });
 
-    // Carrega o GeoJSON dos estados brasileiros
-    const geojsonUrl = 'https://raw.githubusercontent.com/kelvins/Municipios-Brasileiros/main/geojson/Estados.geojson';
+    // Carrega o GeoJSON dos estados brasileiros (fonte confiável)
+    const geojsonUrl = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson';
 
     fetch(geojsonUrl)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            return res.text();
+        })
+        .then(text => {
+            // Remove possíveis BOM (Byte Order Mark) no início do arquivo
+            const cleanText = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+            return JSON.parse(cleanText);
+        })
         .then(geojson => {
             if (camadaEstados) {
                 mapaLeaflet.removeLayer(camadaEstados);
@@ -144,7 +169,9 @@ function desenharMapa(dadosEstado) {
 
             camadaEstados = L.geoJSON(geojson, {
                 style: function (feature) {
-                    const sigla = (feature.properties.sigla || feature.properties.uf || '').toUpperCase();
+                    // Tenta diferentes nomes de propriedade para sigla/UF
+                    const props = feature.properties || {};
+                    const sigla = (props.sigla || props.uf || props.SIGLA || props.UF || props.iso || props.id || '').toUpperCase();
                     const valor = dadosLookup[sigla] || 0;
                     return {
                         fillColor: getCorPorContagem(valor, maxValor),
@@ -155,8 +182,9 @@ function desenharMapa(dadosEstado) {
                     };
                 },
                 onEachFeature: function (feature, layer) {
-                    const sigla = (feature.properties.sigla || feature.properties.uf || '').toUpperCase();
-                    const nome = feature.properties.nome || sigla;
+                    const props = feature.properties || {};
+                    const sigla = (props.sigla || props.uf || props.SIGLA || props.UF || props.iso || props.id || '').toUpperCase();
+                    const nome = props.name || props.nome || props.NAME || props.NOME || sigla;
                     const valor = dadosLookup[sigla] || 0;
 
                     layer.bindTooltip(`<strong>${nome}</strong><br>${valor} pessoa(s) acolhida(s)`, {
@@ -184,14 +212,23 @@ function desenharMapa(dadosEstado) {
             }).addTo(mapaLeaflet);
 
             // Ajusta o zoom para cobrir o Brasil
-            mapaLeaflet.fitBounds(camadaEstados.getBounds(), { padding: [20, 20] });
+            try {
+                mapaLeaflet.fitBounds(camadaEstados.getBounds(), { padding: [20, 20] });
+            } catch (e) {
+                console.warn('Erro ao ajustar bounds do mapa:', e);
+            }
+
+            // Invalida tamanho novamente após carregar os dados
+            setTimeout(() => {
+                if (mapaLeaflet) mapaLeaflet.invalidateSize();
+            }, 200);
 
             // Atualiza legenda
             atualizarLegenda(dadosLookup, maxValor);
         })
         .catch(err => {
             console.error('Erro ao carregar GeoJSON dos estados:', err);
-            container.innerHTML = '<p class="text-sm text-red-600 p-4">Erro ao carregar mapa dos estados.</p>';
+            container.innerHTML = '<p class="text-sm text-red-600 p-4">Erro ao carregar mapa dos estados. Tente novamente.</p>';
         });
 }
 

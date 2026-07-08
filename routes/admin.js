@@ -89,6 +89,21 @@ module.exports = function (dbPool) {
                 `SELECT localizacao FROM cadastros ${filtroData}`
             );
 
+            // Agregação do campo "Onde conheceu o Acolher"
+            const [ondeConheceuRows] = await conn.query(
+                `SELECT COALESCE(NULLIF(TRIM(onde_conheceu), ''), 'Não informado') AS chave, COUNT(*) AS total
+                 FROM cadastros ${filtroData}
+                 GROUP BY chave
+                 ORDER BY total DESC`
+            );
+
+            // Agregação do campo "Rede de apoio"
+            const [redeApoioRows] = await conn.query(
+                `SELECT COALESCE(NULLIF(TRIM(rede_apoio), ''), 'Não informado') AS chave, COUNT(*) AS total
+                 FROM cadastros ${filtroData}
+                 GROUP BY rede_apoio`
+            );
+
             conn.release();
 
             res.json({
@@ -98,7 +113,9 @@ module.exports = function (dbPool) {
                 estadoCivil: estadoCivilRows,
                 faixaEtaria: calcularFaixasEtarias(nascimentoRows),
                 motivo: agruparMotivos(motivoRows),
-                localizacao: await agregarPorEstado(localizacaoRows)
+                localizacao: await agregarPorEstado(localizacaoRows),
+                ondeConheceu: ondeConheceuRows,
+                redeApoio: redeApoioRows
             });
         } catch (err) {
             console.error('❌ Erro ao buscar estatísticas:', err.message);

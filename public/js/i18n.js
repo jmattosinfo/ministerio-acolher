@@ -306,10 +306,60 @@ const I18N = {
             'en': 'WhatsApp *',
             'es': 'WhatsApp *',
         },
+        'form-whatsapp-ajuda': {
+            'pt-BR': 'Formato: (DD) 9 XXXX-XXXX',
+            'en': 'Format: (DD) 9 XXXX-XXXX',
+            'es': 'Formato: (DD) 9 XXXX-XXXX',
+        },
         'form-placeholder-whatsapp': {
             'pt-BR': '(00) 9 0000-0000',
             'en': '+55 (00) 9 0000-0000',
             'es': '(00) 9 0000-0000',
+        },
+        'form-onde-conheceu': {
+            'pt-BR': 'Onde conheceu o Acolher? *',
+            'en': 'How did you find Acolher? *',
+            'es': '¿Dónde conoció Acolher? *',
+        },
+        'form-placeholder-onde-conheceu': {
+            'pt-BR': 'Selecione...',
+            'en': 'Select...',
+            'es': 'Seleccione...',
+        },
+        'onde-facebook': {
+            'pt-BR': 'Facebook',
+            'en': 'Facebook',
+            'es': 'Facebook',
+        },
+        'onde-instagram': {
+            'pt-BR': 'Instagram',
+            'en': 'Instagram',
+            'es': 'Instagram',
+        },
+        'onde-grupo-whatsapp': {
+            'pt-BR': 'Grupo de Whatsapp',
+            'en': 'WhatsApp Group',
+            'es': 'Grupo de Whatsapp',
+        },
+        'onde-amigo-familiar': {
+            'pt-BR': 'Amigo/Familiar',
+            'en': 'Friend/Family',
+            'es': 'Amigo/Familiar',
+        },
+        'onde-indicacao-igreja': {
+            'pt-BR': 'Indicação de igreja',
+            'en': 'Church referral',
+            'es': 'Indicación de iglesia',
+        },
+        'onde-google': {
+            'pt-BR': 'Pesquisei no Google',
+            'en': 'Searched on Google',
+            'es': 'Busqué en Google',
+        },
+        'onde-outros': {
+            'pt-BR': 'Outros',
+            'en': 'Others',
+            'es': 'Otros',
         },
         'form-estado-civil': {
             'pt-BR': 'Estado civil *',
@@ -409,6 +459,11 @@ const I18N = {
             'pt-BR': 'Ocorreu um erro ao enviar. Por favor, tente novamente.',
             'en': 'An error occurred while sending. Please try again.',
             'es': 'Ocurrió un error al enviar. Por favor, intente de nuevo.',
+        },
+        'form-whatsapp-invalido': {
+            'pt-BR': 'O WhatsApp deve ter 11 dígitos no formato (xx) xxxxx-xxxx.',
+            'en': 'WhatsApp must have 11 digits in format (xx) xxxxx-xxxx.',
+            'es': 'WhatsApp debe tener 11 dígitos en el formato (xx) xxxxx-xxxx.',
         },
 
         // ── Footer ──

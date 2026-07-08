@@ -72,6 +72,8 @@ async function carregarDados(periodo) {
         desenharGrafico('graficoEstadoCivil', 'doughnut', data.estadoCivil);
         desenharGrafico('graficoMotivo', 'bar', data.motivo, true);
         desenharGrafico('graficoLocalizacao', 'bar', data.localizacao, true);
+        desenharGrafico('graficoOndeConheceu', 'doughnut', traduzirOndeConheceu(data.ondeConheceu));
+        desenharGrafico('graficoRedeApoio', 'doughnut', traduzirRedeApoio(data.redeApoio));
         desenharMapa(data.localizacao);
     } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
@@ -311,4 +313,49 @@ function atualizarLegenda(dadosLookup, maxValor) {
     });
 
     legenda.innerHTML = html;
+}
+
+// ─── Tradutores para os gráficos ──────────────────────────────────────────
+
+// Mapa de valores do banco → rótulos legíveis para "Onde conheceu o Acolher"
+const MAPA_ONDE_CONHECEU = {
+    'facebook': 'Facebook',
+    'instagram': 'Instagram',
+    'grupo_whatsapp': 'Grupo de Whatsapp',
+    'amigo_familiar': 'Amigo/Familiar',
+    'indicacao_igreja': 'Indicação de igreja',
+    'google': 'Pesquisei no Google',
+    'outros': 'Outros',
+    'Não informado': 'Não informado'
+};
+
+function traduzirOndeConheceu(linhas) {
+    return (linhas || []).map(l => ({
+        chave: MAPA_ONDE_CONHECEU[l.chave] || l.chave,
+        total: l.total
+    }));
+}
+
+// Mapa de valores do banco → rótulos legíveis para "Rede de apoio"
+const MAPA_REDE_APOIO = {
+    'Sim (família, amigos, igreja...)': 'Sim',
+    'Parcialmente': 'Parcialmente',
+    'Não tenho rede de apoio': 'Não',
+    'Não informado': 'Não informado'
+};
+
+// Valores que podem vir do banco caso o front armazene apenas o value do select
+const MAPA_REDE_APOIO_FALLBACK = {
+    'sim': 'Sim',
+    'parcialmente': 'Parcialmente',
+    'nao': 'Não'
+};
+
+function traduzirRedeApoio(linhas) {
+    return (linhas || []).map(l => {
+        const chave = MAPA_REDE_APOIO[l.chave]
+            || MAPA_REDE_APOIO_FALLBACK[l.chave]
+            || l.chave;
+        return { chave, total: l.total };
+    });
 }

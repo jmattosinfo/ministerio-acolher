@@ -23,6 +23,65 @@ if (btnMenuMobile) {
     });
 }
 
+// ── Máscara WhatsApp (xx) xxxxx-xxxx ────────────────
+const campoWhatsapp = document.getElementById('campo-whatsapp');
+const whatsappAjuda = document.getElementById('whatsapp-ajuda');
+
+if (campoWhatsapp) {
+    campoWhatsapp.addEventListener('input', function () {
+        // Remove tudo que não é dígito
+        let digits = this.value.replace(/\D/g, '');
+
+        // Limita a 11 dígitos (2 DDD + 9 número)
+        if (digits.length > 11) digits = digits.slice(0, 11);
+
+        // Aplica a máscara (xx) xxxxx-xxxx
+        let formatted = '';
+        if (digits.length > 0) {
+            formatted = '(' + digits.slice(0, 2);
+        }
+        if (digits.length > 2) {
+            formatted += ') ' + digits.slice(2, 7);
+        }
+        if (digits.length > 7) {
+            formatted += '-' + digits.slice(7, 11);
+        }
+
+        this.value = formatted;
+
+        // Mostra/esconde ajuda visual
+        if (digits.length > 0 && digits.length < 11) {
+            whatsappAjuda.classList.remove('hidden');
+            whatsappAjuda.classList.add('text-amber-600');
+        } else {
+            whatsappAjuda.classList.add('hidden');
+        }
+    });
+
+    // Validação no blur (perda de foco)
+    campoWhatsapp.addEventListener('blur', function () {
+        const digits = this.value.replace(/\D/g, '');
+        if (digits.length > 0 && digits.length !== 11) {
+            this.classList.add('border-red-400', 'bg-red-50/30');
+            whatsappAjuda.classList.remove('hidden');
+            whatsappAjuda.classList.add('text-red-500');
+        } else if (digits.length === 11) {
+            this.classList.remove('border-red-400', 'bg-red-50/30');
+            whatsappAjuda.classList.add('hidden');
+        }
+    });
+
+    // Remove estado de erro ao começar a digitar novamente
+    campoWhatsapp.addEventListener('focus', function () {
+        this.classList.remove('border-red-400', 'bg-red-50/30');
+        const digits = this.value.replace(/\D/g, '');
+        if (digits.length > 0 && digits.length < 11) {
+            whatsappAjuda.classList.remove('hidden');
+            whatsappAjuda.classList.add('text-amber-600');
+        }
+    });
+}
+
 // ── Perfil → aviso sigilo ────────────────────────────
 document.querySelectorAll('input[name="perfil_triagem"]').forEach(radio => {
     radio.addEventListener('change', function () {
@@ -51,6 +110,29 @@ document.getElementById('acolherForm').addEventListener('submit', async function
         return;
     }
 
+    // Valida WhatsApp (deve ter 11 dígitos)
+    const whatsDigits = campoWhatsapp.value.replace(/\D/g, '');
+    if (whatsDigits.length > 0 && whatsDigits.length !== 11) {
+        campoWhatsapp.classList.add('border-red-400', 'bg-red-50/30');
+        campoWhatsapp.focus();
+        campoWhatsapp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const errMsg = document.createElement('p');
+        errMsg.className = 'text-xs text-red-500 mt-1';
+        errMsg.innerText = I18N.t('form-whatsapp-invalido', I18N.currentLang);
+        campoWhatsapp.parentElement.appendChild(errMsg);
+        setTimeout(() => errMsg.remove(), 5000);
+        return;
+    }
+
+    // Valida campo "Onde conheceu o Acolher"
+    const ondeConheceu = document.getElementById('campo-onde-conheceu');
+    if (!ondeConheceu.value) {
+        ondeConheceu.classList.add('border-red-400', 'bg-red-50/30');
+        ondeConheceu.focus();
+        ondeConheceu.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
     const btnTexto = document.getElementById('btn-texto');
     const btnSpinner = document.getElementById('btn-spinner');
     const btnSubmit = document.getElementById('btn-submit');
@@ -60,7 +142,9 @@ document.getElementById('acolherForm').addEventListener('submit', async function
     btnSubmit.disabled = true;
 
     try {
+        // Envia apenas dígitos do WhatsApp (sem máscara)
         const formData = new FormData(this);
+        formData.set('whatsapp', whatsDigits);
         const response = await fetch('/api/cadastro', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

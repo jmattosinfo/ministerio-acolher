@@ -439,7 +439,8 @@
                         </div>
                         <div>
                             <label for="campo-whatsapp" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-whatsapp">WhatsApp *</label>
-                            <input type="text" id="campo-whatsapp" name="whatsapp" data-i18n-placeholder="form-placeholder-whatsapp" placeholder="(00) 9 0000-0000" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <input type="tel" id="campo-whatsapp" name="whatsapp" data-i18n-placeholder="form-placeholder-whatsapp" placeholder="(00) 9 0000-0000" maxlength="16" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <p id="whatsapp-ajuda" class="text-xs text-brand-soft/60 mt-1 hidden" data-i18n="form-whatsapp-ajuda">Formato: (DD) 9 XXXX-XXXX</p>
                         </div>
                         <div>
                             <label for="campo-estado-civil" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-estado-civil">Estado civil *</label>
@@ -474,6 +475,19 @@
                         <div class="md:col-span-2">
                             <label for="campo-motivo" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-motivo">O que te traz para o acolhimento nesse momento? *</label>
                             <textarea id="campo-motivo" name="motivo_terapia" rows="3" required aria-required="true" data-i18n-placeholder="form-placeholder-motivo" placeholder="Escreva com suas próprias palavras, sem pressa. Não há resposta certa ou errada." class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition resize-none"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="campo-onde-conheceu" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-onde-conheceu">Onde conheceu o Acolher? *</label>
+                            <select id="campo-onde-conheceu" name="onde_conheceu" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="" data-i18n="form-placeholder-onde-conheceu">Selecione...</option>
+                                <option value="facebook" data-i18n="onde-facebook">Facebook</option>
+                                <option value="instagram" data-i18n="onde-instagram">Instagram</option>
+                                <option value="grupo_whatsapp" data-i18n="onde-grupo-whatsapp">Grupo de Whatsapp</option>
+                                <option value="amigo_familiar" data-i18n="onde-amigo-familiar">Amigo/Familiar</option>
+                                <option value="indicacao_igreja" data-i18n="onde-indicacao-igreja">Indicação de igreja</option>
+                                <option value="google" data-i18n="onde-google">Pesquisei no Google</option>
+                                <option value="outros" data-i18n="onde-outros">Outros</option>
+                            </select>
                         </div>
                     </div>
 

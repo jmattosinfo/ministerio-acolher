@@ -53,6 +53,7 @@ async function inicializarBanco() {
                 rede_apoio               VARCHAR(30),
                 motivo_terapia           TEXT,
                 preferencia_horario      VARCHAR(30),
+                onde_conheceu            VARCHAR(50),
                 termo_sigilo             TINYINT(1) DEFAULT 0,
                 termo_sessoes            TINYINT(1) DEFAULT 0,
                 termo_gratuidade         TINYINT(1) DEFAULT 0,
@@ -157,7 +158,8 @@ function montarEmailHtml(d, profissional) {
                 <tr><td style="padding:8px;font-weight:bold;">Rede de apoio</td><td style="padding:8px;">${d.rede_apoio || '-'}</td></tr>
                 <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Horário preferido</td><td style="padding:8px;">${d.preferencia_horario || '-'}</td></tr>
                 <tr><td style="padding:8px;font-weight:bold;vertical-align:top;">Motivo</td><td style="padding:8px;">${d.motivo_terapia || '-'}</td></tr>
-                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Perfil de triagem</td><td style="padding:8px;">${d.perfil_triagem || '-'}</td></tr>
+                <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Onde conheceu o Acolher</td><td style="padding:8px;">${d.onde_conheceu || '-'}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;">Perfil de triagem</td><td style="padding:8px;">${d.perfil_triagem || '-'}</td></tr>
             </table>
 
             <p style="margin-top:24px; font-size:12px; color:#888; border-top:1px solid #eee; padding-top:12px;">
@@ -177,11 +179,15 @@ app.post('/api/cadastro', async (req, res) => {
         return res.status(400).json({ ok: false, mensagem: 'Perfil de triagem inválido.' });
     }
 
+    // Valida cidade e estado (obrigatórios)
+    const cidade = (d.cidade || '').trim();
+    const estado = (d.estado || '').trim().toUpperCase();
+    if (!cidade || !estado) {
+        return res.status(400).json({ ok: false, mensagem: 'Cidade e estado são obrigatórios.' });
+    }
+
     try {
-        // Concatena cidade + estado (agora vindos de campos separados no formulário)
-        const cidade = (d.cidade || '').trim();
-        const estado = (d.estado || '').trim().toUpperCase();
-        const localizacaoRaw = cidade && estado ? `${cidade} – ${estado}` : (d.localizacao || '');
+        const localizacaoRaw = `${cidade} – ${estado}`;
         // Tenta enriquecer via Nominatim (fallback p/ dados sem estado, ex: API externa)
         const localizacao = await enriquecerLocalizacao(localizacaoRaw);
 
@@ -192,14 +198,16 @@ app.post('/api/cadastro', async (req, res) => {
                 perfil_triagem, profissional_responsavel,
                 nome, data_nascimento, localizacao, whatsapp,
                 estado_civil, rede_apoio, motivo_terapia, preferencia_horario,
+                onde_conheceu,
                 termo_sigilo, termo_sessoes, termo_gratuidade
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             perfil, profissional.nome,
             d.nome || null, d.data_nascimento || null,
             localizacao, d.whatsapp || null,
             d.estado_civil || null, d.rede_apoio || null,
             d.motivo_terapia || null, d.preferencia_horario || null,
+            d.onde_conheceu || null,
             d.termo_sigilo ? 1 : 0,
             d.termo_sessoes ? 1 : 0,
             d.termo_gratuidade ? 1 : 0

@@ -255,6 +255,21 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* ── Respeita preferência do sistema por menos animações ── */
+/* ── Seletor de idioma ── */
+.lang-btn {
+    transition: background 0.2s ease, color 0.2s ease;
+    line-height: 1.2;
+}
+
+/* ── Evita quebra do seletor em telas muito estreitas ── */
+@media (max-width: 374px) {
+    .lang-btn {
+        font-size: 0.75rem !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .reveal {
         opacity: 1;

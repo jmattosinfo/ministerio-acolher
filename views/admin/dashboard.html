@@ -133,6 +133,139 @@
             color: #7A1C1C;
         }
 
+        /* ─── Legenda do mapa ─────────────────────────── */
+        .mapa-legenda {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .mapa-legenda::-webkit-scrollbar {
+            width: 4px;
+        }
+        .mapa-legenda::-webkit-scrollbar-thumb {
+            background: #D1A8A8;
+            border-radius: 4px;
+        }
+        .legenda-cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #7A5C5C;
+            padding: 4px 2px 8px;
+            border-bottom: 1px solid #ede7db;
+            margin-bottom: 2px;
+        }
+        .legenda-total {
+            font-size: 12px;
+            color: #2C1A1A;
+        }
+        .legenda-escala {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 2px 8px;
+            border-bottom: 1px solid #ede7db;
+            margin-bottom: 2px;
+        }
+        .legenda-escala-label {
+            font-size: 10px;
+            color: #7A5C5C;
+            white-space: nowrap;
+        }
+        .legenda-escala-barra {
+            flex: 1;
+            display: flex;
+            height: 12px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .legenda-escala-item {
+            flex: 1;
+        }
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            background: #faf8f4;
+            border: 1px solid #ede7db;
+            transition: background 0.15s;
+        }
+        .legenda-item:hover {
+            background: #f0ebe0;
+        }
+        .legenda-cor {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+        .legenda-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-width: 0;
+            gap: 8px;
+        }
+        .legenda-sigla {
+            font-weight: 700;
+            color: #2C1A1A;
+            font-size: 13px;
+        }
+        .legenda-nome {
+            color: #7A5C5C;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+        .legenda-numero {
+            font-weight: 600;
+            color: #2C1A1A;
+            font-size: 13px;
+            white-space: nowrap;
+            min-width: 70px;
+            text-align: right;
+        }
+        .legenda-barra {
+            flex: 1;
+            max-width: 100px;
+            height: 6px;
+            background: #ede7db;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .legenda-barra-preenchimento {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .legenda-naoinformado {
+            font-size: 11px;
+            color: #B87A7A;
+            padding: 6px 8px;
+            background: #fdf6f0;
+            border-radius: 6px;
+            border: 1px dashed #e8d5d5;
+            text-align: center;
+            margin-top: 2px;
+        }
+        .sem-dados {
+            font-size: 12px;
+            color: #7A5C5C;
+            font-style: italic;
+            text-align: center;
+            padding: 12px;
+        }
+
         @media (max-width: 600px) {
             header {
                 flex-direction: column;
@@ -202,9 +335,13 @@
                 <canvas id="graficoMotivo"></canvas>
             </div>
             <div class="grafico-card">
-                <h2><i data-lucide="map-pin" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Distribuição por Estado</h2>
-                <div id="mapaLocalizacao" style="height: 380px; border-radius: 8px;"></div>
-                <div id="mapaLegenda" class="flex flex-wrap gap-2 mt-3 text-xs text-brand-soft"></div>
+                <h2><i data-lucide="bar-chart-3" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Pessoas acolhidas por Estado</h2>
+                <canvas id="graficoLocalizacao"></canvas>
+            </div>
+            <div class="grafico-card" style="grid-column: 1 / -1;">
+                <h2><i data-lucide="map-pin" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Mapa — Distribuição por Estado</h2>
+                <div id="mapaLocalizacao" style="height: 420px; border-radius: 8px;"></div>
+                <div id="mapaLegenda" class="mapa-legenda"></div>
             </div>
         </div>
     </main>

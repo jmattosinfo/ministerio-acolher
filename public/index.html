@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ministério Acolher | Um espaço de escuta, cuidado e respeito</title>
+    <title data-i18n="hero-title">Ministério Acolher | Um espaço de escuta, cuidado e respeito</title>
 
     <!-- Open Graph (compartilhamento limpo) -->
-    <meta property="og:title" content="Ministério Acolher">
-    <meta property="og:description" content="Um espaço de escuta, cuidado e respeito. Atendimento 100% gratuito e sigiloso.">
+    <meta property="og:title" data-i18n-content="hero-title" content="Ministério Acolher">
+    <meta property="og:description" data-i18n-content="hero-subtitle" content="Um espaço de escuta, cuidado e respeito. Atendimento 100% gratuito e sigiloso.">
     <meta property="og:image" content="/assets/images/logoS2.png">
     <meta property="og:type" content="website">
 
@@ -53,42 +53,81 @@
 <body class="bg-brand-light text-brand-text font-sans antialiased">
 
     <!-- Skip link: acessibilidade por teclado -->
-    <a href="#formulario" class="skip-link">Pular para o formulário de acolhimento</a>
+    <a href="#formulario" class="skip-link" data-i18n="skip-link">Pular para o formulário de acolhimento</a>
 
     <!-- Barra Superior -->
     <div class="h-1.5 bg-gradient-to-r from-brand-deep via-brand-accent to-brand-deep"></div>
 
     <!-- Navegação Fixa -->
-    <nav role="navigation" aria-label="Navegação principal" class="sticky top-0 z-50 bg-brand-light/90 backdrop-blur-md border-b border-brand-dark/8 shadow-sm">
+    <nav role="navigation" data-i18n-aria-label="nav-label" aria-label="Navegação principal" class="sticky top-0 z-50 bg-brand-light/90 backdrop-blur-md border-b border-brand-dark/8 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <a href="#top" aria-label="Ir para a home">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="#top" data-i18n-aria-label="nav-home" aria-label="Ir para a home">
                     <img src="/assets/images/acolher-lado.png" alt="Ministério Acolher" class="h-10 w-auto">
                 </a>
             </div>
+
+            <!-- Navegação Desktop (central) -->
             <div class="hidden md:flex items-center gap-6 text-sm font-medium text-brand-soft">
-                <a href="#sobre" class="hover:text-brand-dark transition">Sobre</a>
-                <a href="#equipe" class="hover:text-brand-dark transition">Equipe</a>
-                <a href="#formulario" class="hover:text-brand-dark transition">Acolhimento</a>
-                <a href="#formulario" class="bg-brand-dark text-white px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-brand-deep transition">Quero ser acolhido</a>
+                <a href="#sobre" class="hover:text-brand-dark transition whitespace-nowrap" data-i18n="nav-sobre">Sobre</a>
+                <a href="#equipe" class="hover:text-brand-dark transition whitespace-nowrap" data-i18n="nav-equipe">Equipe</a>
+                <a href="#formulario" class="hover:text-brand-dark transition whitespace-nowrap" data-i18n="nav-acolhimento">Acolhimento</a>
+                <a href="#formulario" class="bg-brand-dark text-white px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-brand-deep transition whitespace-nowrap" data-i18n="nav-cta">Quero ser acolhido</a>
             </div>
-            <div class="md:hidden flex items-center gap-2">
-                <a href="#formulario" class="bg-brand-dark text-white px-3 py-1.5 rounded-full text-xs font-semibold">Acolhimento</a>
-                <button id="btn-menu-mobile" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-mobile" class="text-brand-dark p-1.5">
-                    <svg id="icon-menu-aberto" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <svg id="icon-menu-fechado" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+
+            <!-- Bloco direito: seletor de idioma + botões mobile -->
+            <div class="flex items-center gap-1 sm:gap-2">
+
+                <!-- SELETOR DE IDIOMA RESPONSIVO (sempre visível) -->
+                <!-- Mobile: apenas bandeiras (ícones) -->
+                <div class="flex items-center gap-0.5 sm:gap-1 border border-brand-muted/50 rounded-lg px-1 sm:px-2 py-1 bg-brand-light/60 shadow-sm">
+                    <button data-lang-btn="pt-BR" onclick="I18N.applyTranslation('pt-BR')"
+                        class="lang-btn text-sm sm:text-base px-1 sm:px-1.5 py-0.5 rounded-md transition
+                               aria-pressed:bg-brand-cream aria-pressed:text-brand-dark aria-pressed:ring-1 aria-pressed:ring-brand-dark/30
+                               hover:text-brand-dark text-brand-soft"
+                        aria-pressed="true" title="Português">
+                        <span class="inline">🇧🇷</span>
+                        <span class="hidden md:inline text-xs font-semibold ml-0.5">PT</span>
+                    </button>
+                    <button data-lang-btn="en" onclick="I18N.applyTranslation('en')"
+                        class="lang-btn text-sm sm:text-base px-1 sm:px-1.5 py-0.5 rounded-md transition
+                               aria-pressed:bg-brand-cream aria-pressed:text-brand-dark aria-pressed:ring-1 aria-pressed:ring-brand-dark/30
+                               hover:text-brand-dark text-brand-soft"
+                        aria-pressed="false" title="English">
+                        <span class="inline">🇺🇸</span>
+                        <span class="hidden md:inline text-xs font-semibold ml-0.5">EN</span>
+                    </button>
+                    <button data-lang-btn="es" onclick="I18N.applyTranslation('es')"
+                        class="lang-btn text-sm sm:text-base px-1 sm:px-1.5 py-0.5 rounded-md transition
+                               aria-pressed:bg-brand-cream aria-pressed:text-brand-dark aria-pressed:ring-1 aria-pressed:ring-brand-dark/30
+                               hover:text-brand-dark text-brand-soft"
+                        aria-pressed="false" title="Español">
+                        <span class="inline">🇪🇸</span>
+                        <span class="hidden md:inline text-xs font-semibold ml-0.5">ES</span>
+                    </button>
+                </div>
+
+                <!-- Mobile: CTA + hamburger -->
+                <div class="md:hidden flex items-center gap-1 sm:gap-2">
+                    <a href="#formulario" class="bg-brand-dark text-white px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap" data-i18n="nav-acolhimento-mobile">Acolhimento</a>
+                    <button id="btn-menu-mobile" data-i18n-aria-label="btn-menu-abrir" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu-mobile" class="text-brand-dark p-1.5">
+                        <svg id="icon-menu-aberto" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg id="icon-menu-fechado" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
-        <!-- Menu mobile -->
+
+        <!-- Menu mobile (dropdown) -->
         <div id="menu-mobile" class="hidden md:hidden border-t border-brand-dark/8 bg-brand-light px-4 py-4 flex flex-col gap-3 text-sm font-medium text-brand-soft">
-            <a href="#sobre" class="hover:text-brand-dark transition py-1">Sobre</a>
-            <a href="#equipe" class="hover:text-brand-dark transition py-1">Equipe</a>
-            <a href="#formulario" class="hover:text-brand-dark transition py-1">Acolhimento</a>
+            <a href="#sobre" class="hover:text-brand-dark transition py-1" data-i18n="nav-sobre">Sobre</a>
+            <a href="#equipe" class="hover:text-brand-dark transition py-1" data-i18n="nav-equipe">Equipe</a>
+            <a href="#formulario" class="hover:text-brand-dark transition py-1" data-i18n="nav-acolhimento">Acolhimento</a>
         </div>
     </nav>
 
@@ -106,26 +145,26 @@
                 <img src="/assets/images/logoS2.png" alt="Ministério Acolher" class="logo-hero h-36 w-auto mx-auto block">
             </div>
 
-            <span class="inline-block text-xs font-bold tracking-[0.2em] text-brand-soft uppercase mb-5 border border-brand-muted px-4 py-1.5 rounded-full bg-brand-light/70 backdrop-blur-sm">
+            <span class="inline-block text-xs font-bold tracking-[0.2em] text-brand-soft uppercase mb-5 border border-brand-muted px-4 py-1.5 rounded-full bg-brand-light/70 backdrop-blur-sm" data-i18n="hero-badge">
                 Atendimento 100% Gratuito e Sigiloso
             </span>
-            <h1 class="font-title text-4xl md:text-6xl text-brand-dark tracking-wide font-bold mb-5 leading-tight">
+            <h1 class="font-title text-4xl md:text-6xl text-brand-dark tracking-wide font-bold mb-5 leading-tight" data-i18n="hero-title">
                 Ministério Acolher
             </h1>
-            <p class="font-serif text-xl md:text-2xl text-brand-dark font-bold italic max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow-sm text-center">
+            <p class="font-serif text-xl md:text-2xl text-brand-dark font-bold italic max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow-sm text-center" data-i18n="hero-subtitle">
                 "Um espaço de escuta, cuidado e respeito."
             </p>
-            <p class="text-brand-dark font-semibold text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-sm text-center">
+            <p class="text-brand-dark font-semibold text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-sm text-center" data-i18n="hero-description">
                 Oferecemos acolhimento emocional e espiritual especializado para homens e
                 mulheres maiores de 18 anos que vivenciam ou vivenciaram violência doméstica
                 no relacionamento conjugal, divórcio, ou abuso sexual fora do casamento.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="#formulario" class="bg-brand-dark text-white font-serif font-semibold px-8 py-3.5 rounded-xl shadow-lg hover:bg-brand-deep transition text-base">
+                <a href="#formulario" class="bg-brand-dark text-white font-serif font-semibold px-8 py-3.5 rounded-xl shadow-lg hover:bg-brand-deep transition text-base" data-i18n="hero-btn-form">
                     Preencher formulário de acolhimento
                 </a>
                 <a href="#sobre" class="text-brand-dark font-medium text-sm flex items-center gap-2 hover:gap-3 transition-all">
-                    Saiba mais <span>↓</span>
+                    <span data-i18n="hero-btn-more">Saiba mais</span> <span>↓</span>
                 </a>
             </div>
         </div>
@@ -143,18 +182,18 @@
     <!-- ══════════════════════════════════════════════════
          SOBRE O PROJETO
     ══════════════════════════════════════════════════ -->
-    <section id="sobre" role="region" aria-label="Sobre o Projeto" class="bg-brand-cream/30 py-20 px-4">
+    <section id="sobre" role="region" data-i18n-aria-label="sobre-titulo" aria-label="Sobre o Projeto" class="bg-brand-cream/30 py-20 px-4">
         <div class="max-w-6xl mx-auto">
 
             <div class="ornament-divider mb-12 reveal">
-                <span class="font-title text-xs tracking-[0.25em] text-brand-dark uppercase">Sobre o Projeto</span>
+                <span class="font-title text-xs tracking-[0.25em] text-brand-dark uppercase" data-i18n="sobre-titulo">Sobre o Projeto</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-brand-light rounded-2xl p-7 shadow-sm border border-brand-muted/60 reveal" style="transition-delay: 0.1s">
                     <div class="w-11 h-11 rounded-full bg-brand-cream flex items-center justify-center text-xl mb-5 border border-brand-dark/10">💜</div>
-                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Respeito à Fé</h3>
-                    <p class="text-sm text-brand-soft leading-relaxed">
+                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3" data-i18n="card1-titulo">Respeito à Fé</h3>
+                    <p class="text-sm text-brand-soft leading-relaxed" data-i18n="card1-texto">
                         O acolhimento <b>não substitui</b> o atendimento psicológico, psiquiátrico ou jurídico,
                         mas atua como um <b>importante suporte</b> complementar. <b>Respeitamos</b> a dimensão espiritual
                         e as convicções individuais de cada pessoa, sem qualquer imposição religiosa.
@@ -165,16 +204,16 @@
                 </div>
                 <div class="bg-brand-light rounded-2xl p-7 shadow-sm border border-brand-muted/60 reveal" style="transition-delay: 0.2s">
                     <div class="w-11 h-11 rounded-full bg-brand-cream flex items-center justify-center text-xl mb-5 border border-brand-dark/10">🔒</div>
-                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Gratuito e Sigiloso</h3>
-                    <p class="text-sm text-brand-soft leading-relaxed">
+                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3" data-i18n="card2-titulo">Gratuito e Sigiloso</h3>
+                    <p class="text-sm text-brand-soft leading-relaxed" data-i18n="card2-texto">
                         Nosso atendimento é 100% online, totalmente gratuito e estritamente sigiloso. Você tem direito
                         a três sessões de acolhimento. Suas informações nunca serão compartilhadas.
                     </p>
                 </div>
                 <div class="bg-brand-light rounded-2xl p-7 shadow-sm border border-brand-muted/60 reveal" style="transition-delay: 0.3s">
                     <div class="w-11 h-11 rounded-full bg-brand-cream flex items-center justify-center text-xl mb-5 border border-brand-dark/10">🌱</div>
-                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3">Equipe Qualificada</h3>
-                    <p class="text-sm text-brand-soft leading-relaxed">
+                    <h3 class="font-serif text-lg font-bold text-brand-dark mb-3" data-i18n="card3-titulo">Equipe Qualificada</h3>
+                    <p class="text-sm text-brand-soft leading-relaxed" data-i18n="card3-texto">
                         Profissionais e estudiosos da saúde mental preparados para oferecer uma escuta ética,
                         empática e cuidadosa — respeitando o ritmo e a história de cada pessoa.
                     </p>
@@ -182,7 +221,7 @@
             </div>
 
             <div class="mt-16 text-center reveal">
-                <p class="font-cursive text-4xl md:text-5xl text-brand-dark leading-snug max-w-3xl mx-auto">
+                <p class="font-cursive text-4xl md:text-5xl text-brand-dark leading-snug max-w-3xl mx-auto" data-i18n="sobre-frase">
                     "Um gesto simples pode abrir caminhos de cuidado,<br>e novas histórias podem começar a ser escritas."
                 </p>
                 <div class="mt-6 flex justify-center">
@@ -196,13 +235,13 @@
     <!-- ══════════════════════════════════════════════════
                         EQUIPE
     ══════════════════════════════════════════════════ -->
-    <section id="equipe" role="region" aria-label="Nossa Equipe" class="py-20 px-4 bg-brand-light">
+    <section id="equipe" role="region" data-i18n-aria-label="equipe-titulo" aria-label="Nossa Equipe" class="py-20 px-4 bg-brand-light">
         <div class="max-w-6xl mx-auto">
 
             <div class="ornament-divider mb-4 reveal">
-                <span class="font-title text-xs tracking-[0.25em] text-brand-dark uppercase">Nossos Profissionais</span>
+                <span class="font-title text-xs tracking-[0.25em] text-brand-dark uppercase" data-i18n="equipe-titulo">Nossos Profissionais</span>
             </div>
-            <p class="text-center text-brand-soft text-sm mb-12 reveal">Cada profissional é direcionado de acordo com o seu perfil e necessidade.</p>
+            <p class="text-center text-brand-soft text-sm mb-12 reveal" data-i18n="equipe-subtitulo">Cada profissional é direcionado de acordo com o seu perfil e necessidade.</p>
 
             <!-- Mudança aqui: de grid para flex centralizado -->
             <div class="flex flex-wrap justify-center gap-6">
@@ -216,14 +255,14 @@
                         </div>
                     </div>
                     <h4 class="font-serif font-bold text-brand-dark text-lg">Matheus</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">
+                    <p class="text-xs text-brand-soft mt-1 leading-relaxed" data-i18n="matheus-desc">
                         <b>Acolhimento para homens</b> que vivenciam ou vivenciaram violência doméstica
                         no casamento, que estão divorciados ou em processo de separação,
                         e também para aqueles que sofreram abuso sexual em qualquer fase da vida,
                         fora do contexto conjugal.
                     </p>
                     <div class="mt-4 pt-4 border-t border-brand-muted/60">
-                        <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium border border-blue-100">Homens</span>
+                        <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium border border-blue-100" data-i18n="matheus-tag">Homens</span>
                     </div>
                 </div>
 
@@ -247,11 +286,11 @@
                         </div>
                     </div>
                     <h4 class="font-serif font-bold text-brand-dark text-lg">Agda & Gabriela</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">
+                    <p class="text-xs text-brand-soft mt-1 leading-relaxed" data-i18n="agda-gabriela-desc">
                         <b>Acolhimento, apoio emocional e escuta segura</b> para mulheres que vivenciam — ou já vivenciaram — violência doméstica, crises no relacionamento conjugal, divórcio ou que estão em processo de separação.
                     </p>
                     <div class="mt-4 pt-4 border-t border-brand-muted/60">
-                        <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-medium border border-rose-100">Mulheres</span>
+                        <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-medium border border-rose-100" data-i18n="agda-gabriela-tag">Mulheres</span>
                     </div>
                 </div>
 
@@ -264,9 +303,9 @@
                         </div>
                     </div>
                     <h4 class="font-serif font-bold text-brand-dark text-lg">Kelly</h4>
-                    <p class="text-xs text-brand-soft mt-1 leading-relaxed">Acolhimento para mulheres que já sofreram <b>abuso sexual</b> em alguma fase da vida fora do contexto do casamento.</p>
+                    <p class="text-xs text-brand-soft mt-1 leading-relaxed" data-i18n="kelly-desc">Acolhimento para mulheres que já sofreram <b>abuso sexual</b> em alguma fase da vida fora do contexto do casamento.</p>
                     <div class="mt-4 pt-4 border-t border-brand-muted/60">
-                        <span class="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-medium border border-purple-100">Especialista em atendimento a vítimas de Abuso</span>
+                        <span class="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-medium border border-purple-100" data-i18n="kelly-tag">Especialista em atendimento a vítimas de Abuso</span>
                     </div>
                 </div>
 
@@ -276,7 +315,7 @@
 
             <div class="mt-10 bg-brand-cream/60 border border-brand-dark/10 rounded-xl px-6 py-4 flex items-start gap-3 max-w-2xl mx-auto reveal">
                 <span class="text-base mt-0.5">🔐</span>
-                <p class="text-xs text-brand-soft leading-relaxed">
+                <p class="text-xs text-brand-soft leading-relaxed" data-i18n="equipe-aviso">
                     O contato com os profissionais será feito logo após o preenchimento do formulário de triagem abaixo,
                     garantindo que você seja direcionado à pessoa mais indicada para o seu momento.
                 </p>
@@ -288,34 +327,34 @@
     <!-- ══════════════════════════════════════════════════
     ║       FORMULÁRIO DE ACOLHIMENTO
     ══════════════════════════════════════════════════ -->
-    <section id="formulario" role="region" aria-label="Formulário de Acolhimento" class="py-20 px-4 bg-brand-cream/30">
+    <section id="formulario" role="region" data-i18n-aria-label="form-titulo" aria-label="Formulário de Acolhimento" class="py-20 px-4 bg-brand-cream/30">
         <div class="max-w-2xl mx-auto">
 
             <div class="ornament-divider mb-4 reveal">
-                <span class="font-title text-xs tracking-[0.25em] text-brand-dark uppercase">Formulário de Acolhimento</span>
+                <span class="font-title text-xs font-bold tracking-[0.25em] text-brand-dark bg-brand-light/40 px-2.5 py-1 rounded-md uppercase" data-i18n="form-titulo">Formulário de Acolhimento</span>
             </div>
-            <p class="text-center text-brand-soft text-sm mb-10 reveal">
+            <p class="text-center text-brand-soft text-sm mb-10 reveal" data-i18n="form-desc">
                 Preencha em um ambiente privado, seguro e tranquilo. Todas as informações são sigilosas e o atendimento é <strong class="text-brand-dark">totalmente gratuito</strong>.
             </p>
 
             <div class="bg-brand-light rounded-2xl shadow-xl border border-brand-muted/60 overflow-hidden reveal">
 
-                <form id="acolherForm" action="/api/cadastro" method="POST" class="p-6 md:p-8 space-y-6" novalidate aria-label="Formulário de acolhimento">
+                <form id="acolherForm" action="/api/cadastro" method="POST" class="p-6 md:p-8 space-y-6" novalidate data-i18n-aria-label="form-titulo" aria-label="Formulário de acolhimento">
 
                     <!-- Perfil de triagem -->
                     <fieldset>
-                        <legend class="block text-xs font-bold text-brand-dark uppercase mb-3 tracking-wider">Perfil de atendimento *</legend>
+                        <legend class="block text-xs font-bold text-brand-dark uppercase mb-3 tracking-wider" data-i18n="form-legend">Escolha seu Perfil de atendimento *</legend>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <label class="relative cursor-pointer">
                                 <input type="radio" name="perfil_triagem" value="homem" class="peer sr-only" required>
                                 <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
                                     <span class="text-base block mb-1">🌿</span>
-                                    <strong class="block text-brand-dark text-sm">Acolhimento masculino</strong>
+                                    <strong class="block text-brand-dark text-sm" data-i18n="form-perfil-masculino-titulo">Acolhimento masculino</strong>
                                     <span class="text-xs text-brand-soft">
                                         <ul class="list-disc list-inside">
-                                            <li>Violência doméstica</li>
-                                            <li>Divórcio</li>
-                                            <li>Vítima de abuso sexual</li>
+                                            <li data-i18n="form-perfil-masculino-item1">Violência doméstica</li>
+                                            <li data-i18n="form-perfil-masculino-item2">Divórcio</li>
+                                            <li data-i18n="form-perfil-masculino-item3">Vítima de abuso sexual</li>
                                         </ul>
                                     </span>
                                 </div>
@@ -324,12 +363,12 @@
                                 <input type="radio" name="perfil_triagem" value="mulher" class="peer sr-only">
                                 <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
                                     <span class="text-base block mb-1">🌸</span>
-                                    <strong class="block text-brand-dark text-sm">Acolhimento feminino</strong>
+                                    <strong class="block text-brand-dark text-sm" data-i18n="form-perfil-feminino-titulo">Acolhimento feminino</strong>
                                     <span class="text-xs text-brand-soft">
 
                                         <ul class="list-disc list-inside">
-                                            <li>Violência doméstica</li>
-                                            <li>Divórcio</li>
+                                            <li data-i18n="form-perfil-feminino-item1">Violência doméstica</li>
+                                            <li data-i18n="form-perfil-feminino-item2">Divórcio</li>
                                         </ul>
 
                                     </span>
@@ -339,79 +378,112 @@
                                 <input type="radio" name="perfil_triagem" value="vitima_abuso" class="peer sr-only">
                                 <div class="peer-checked:border-brand-dark peer-checked:bg-brand-cream border-2 border-brand-muted rounded-xl p-3.5 text-sm transition-all h-full">
                                     <span class="text-base block mb-1">🛡️</span>
-                                    <strong class="block text-brand-dark text-sm">Mulher</strong>
-                                    <span class="text-xs text-brand-soft">Vítima de abuso sexual fora do casamento</span>
+                                    <strong class="block text-brand-dark text-sm" data-i18n="form-perfil-abuso-titulo">Mulher</strong>
+                                    <span class="text-xs text-brand-soft" data-i18n="form-perfil-abuso-desc">Vítima de abuso sexual fora do casamento</span>
                                 </div>
                             </label>
                         </div>
                     </fieldset>
 
                     <!-- Aviso sigilo para vítimas de abuso -->
-                    <div id="aviso-abuso" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 leading-relaxed">
+                    <div id="aviso-abuso" class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 leading-relaxed" data-i18n="form-aviso-abuso">
                         🛡️ <strong>Você pode usar um codinome ou pseudônimo</strong> no campo de nome abaixo — sua identidade real não é obrigatória. Seu sigilo e segurança são nossa prioridade absoluta.
                     </div>
 
                     <!-- Dados pessoais -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label id="label-nome" for="campo-nome" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Nome completo *</label>
-                            <input type="text" id="campo-nome" name="nome" required aria-required="true" placeholder="Como gostaria de ser chamado(a)" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <label id="label-nome" for="campo-nome" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-label-nome">Nome completo *</label>
+                            <input type="text" id="campo-nome" name="nome" required aria-required="true" data-i18n-placeholder="form-placeholder-nome" placeholder="Como gostaria de ser chamado(a)" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
                         </div>
                         <div>
-                            <label for="campo-nascimento" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Data de nascimento *</label>
+                            <label for="campo-nascimento" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-nascimento">Data de nascimento *</label>
                             <input type="date" id="campo-nascimento" name="data_nascimento" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
                         </div>
                         <div>
-                            <label for="campo-localizacao" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Cidade e Estado *</label>
-                            <input type="text" id="campo-localizacao" name="localizacao" placeholder="Ex: Porto Alegre – RS" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <label for="campo-cidade" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-cidade">Cidade *</label>
+                            <input type="text" id="campo-cidade" name="cidade" data-i18n-placeholder="form-placeholder-cidade" placeholder="Ex: Porto Alegre" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
                         </div>
                         <div>
-                            <label for="campo-whatsapp" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">WhatsApp *</label>
-                            <input type="text" id="campo-whatsapp" name="whatsapp" placeholder="(00) 9 0000-0000" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <label for="campo-estado" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-estado">Estado *</label>
+                            <select id="campo-estado" name="estado" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="" data-i18n="form-placeholder-estado">Selecione o estado...</option>
+                                <option value="AC">Acre</option>
+                                <option value="AL">Alagoas</option>
+                                <option value="AP">Amapá</option>
+                                <option value="AM">Amazonas</option>
+                                <option value="BA">Bahia</option>
+                                <option value="CE">Ceará</option>
+                                <option value="DF">Distrito Federal</option>
+                                <option value="ES">Espírito Santo</option>
+                                <option value="GO">Goiás</option>
+                                <option value="MA">Maranhão</option>
+                                <option value="MT">Mato Grosso</option>
+                                <option value="MS">Mato Grosso do Sul</option>
+                                <option value="MG">Minas Gerais</option>
+                                <option value="PA">Pará</option>
+                                <option value="PB">Paraíba</option>
+                                <option value="PR">Paraná</option>
+                                <option value="PE">Pernambuco</option>
+                                <option value="PI">Piauí</option>
+                                <option value="RJ">Rio de Janeiro</option>
+                                <option value="RN">Rio Grande do Norte</option>
+                                <option value="RS">Rio Grande do Sul</option>
+                                <option value="RO">Rondônia</option>
+                                <option value="RR">Roraima</option>
+                                <option value="SC">Santa Catarina</option>
+                                <option value="SP">São Paulo</option>
+                                <option value="SE">Sergipe</option>
+                                <option value="TO">Tocantins</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="campo-estado-civil" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Estado civil *</label>
+                            <label for="campo-whatsapp" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-whatsapp">WhatsApp *</label>
+                            <input type="text" id="campo-whatsapp" name="whatsapp" data-i18n-placeholder="form-placeholder-whatsapp" placeholder="(00) 9 0000-0000" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                        </div>
+                        <div>
+                            <label for="campo-estado-civil" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-estado-civil">Estado civil *</label>
                             <select id="campo-estado-civil" name="estado_civil" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                <option value="">Selecione...</option>
-                                <option>Solteira(o)</option>
-                                <option>Casada(o)</option>
-                                <option>Divorciada(o)</option>
-                                <option>Viúva(o)</option>
-                                <option>União Estável</option>
+                                <option value="" data-i18n="form-placeholder-estado-civil">Selecione...</option>
+                                <option data-i18n="civil-solteiro">Solteira(o)</option>
+                                <option data-i18n="civil-casado">Casada(o)</option>
+                                <option data-i18n="civil-divorciado">Divorciada(o)</option>
+                                <option data-i18n="civil-viuvo">Viúva(o)</option>
+                                <option data-i18n="civil-uniao">União Estável</option>
                             </select>
                         </div>
                         <div>
-                            <label for="campo-rede-apoio" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Tem rede de apoio? *</label>
+                            <label for="campo-rede-apoio" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-rede-apoio">Tem rede de apoio? *</label>
                             <select id="campo-rede-apoio" name="rede_apoio" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                <option value="">Selecione...</option>
-                                <option>Sim (família, amigos, igreja...)</option>
-                                <option>Parcialmente</option>
-                                <option>Não tenho rede de apoio</option>
+                                <option value="" data-i18n="form-placeholder-rede-apoio">Selecione...</option>
+                                <option data-i18n="apoio-sim">Sim (família, amigos, igreja...)</option>
+                                <option data-i18n="apoio-parcial">Parcialmente</option>
+                                <option data-i18n="apoio-nao">Não tenho rede de apoio</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label for="campo-horario" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">Preferência de horário * (Atendimento 100% online)</label>
+                            <label for="campo-horario" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-horario">Preferência de horário * (Atendimento 100% online)</label>
                             <select id="campo-horario" name="preferencia_horario" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                <option value="">Selecione...</option>
-                                <option>Manhã</option>
-                                <option>Tarde</option>
-                                <option>Noite</option>
-                                <option>Domingos</option>
+                                <option value="" data-i18n="form-placeholder-horario">Selecione...</option>
+                                <option data-i18n="horario-manha">Manhã</option>
+                                <option data-i18n="horario-tarde">Tarde</option>
+                                <option data-i18n="horario-noite">Noite</option>
+                                <option data-i18n="horario-domingos">Domingos</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label for="campo-motivo" class="block text-xs font-bold text-brand-dark uppercase mb-1.5">O que te traz para o acolhimento nesse momento? *</label>
-                            <textarea id="campo-motivo" name="motivo_terapia" rows="3" required aria-required="true" placeholder="Escreva com suas próprias palavras, sem pressa. Não há resposta certa ou errada." class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition resize-none"></textarea>
+                            <label for="campo-motivo" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-motivo">O que te traz para o acolhimento nesse momento? *</label>
+                            <textarea id="campo-motivo" name="motivo_terapia" rows="3" required aria-required="true" data-i18n-placeholder="form-placeholder-motivo" placeholder="Escreva com suas próprias palavras, sem pressa. Não há resposta certa ou errada." class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition resize-none"></textarea>
                         </div>
                     </div>
 
                     <!-- Termos de consentimento -->
                     <div class="bg-brand-cream/50 rounded-xl border border-brand-dark/10 p-5 space-y-4">
-                        <h4 class="text-xs font-bold text-brand-dark uppercase tracking-wider">Termos de consentimento</h4>
+                        <h4 class="text-xs font-bold text-brand-dark uppercase tracking-wider" data-i18n="form-termos-titulo">Termos de consentimento</h4>
 
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" name="termo_sigilo" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
-                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
+                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition" data-i18n="form-termo-sigilo">
                                 Compreendo que o acolhimento não substitui tratamento psicológico contínuo,
                                 e que todas as informações serão mantidas em <strong class="text-brand-dark">sigilo profissional absoluto</strong>.*
                             </span>
@@ -419,9 +491,9 @@
 
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" name="termo_sessoes" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
-                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
+                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition" data-i18n="form-termo-sessoes">
                                 Estou ciente de que o acolhimento oferecido pelo Ministério Acolher compreende
-                                <strong class="text-brand-dark">três sessões de aproximadamente 60 minutos</strong> cada.
+                                <strong class="text-brand-dark">três sessões de aproximadamente 50 minutos</strong> cada.
                                 Caso deseje continuar o processo terapêutico após esse período, poderei fazê-lo mediante
                                 acordo direto com o profissional que me atenderá. *
                             </span>
@@ -429,7 +501,7 @@
 
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" name="termo_gratuidade" required class="mt-0.5 accent-brand-dark h-4 w-4 flex-shrink-0">
-                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition">
+                            <span class="text-xs text-brand-soft leading-relaxed group-hover:text-brand-text transition" data-i18n="form-termo-gratuidade">
                                 Compreendo que o atendimento do Ministério Acolher é <strong class="text-brand-dark">totalmente gratuito</strong>
                                 e que tenho direito a três sessões de acolhimento.*
                             </span>
@@ -438,7 +510,7 @@
 
                     <!-- Botão de envio -->
                     <button type="submit" id="btn-submit" class="w-full bg-brand-dark text-white font-serif font-semibold py-3.5 px-4 rounded-xl hover:bg-brand-deep transition text-sm shadow-lg flex items-center justify-center gap-2">
-                        <span id="btn-texto">Enviar formulário de acolhimento</span>
+                        <span id="btn-texto" data-i18n="form-btn-enviar">Enviar formulário de acolhimento</span>
                         <span id="btn-spinner" class="hidden">⏳</span>
                     </button>
 
@@ -462,13 +534,13 @@
                     <div class="flex items-center gap-2 mb-3">
                         <img src="/assets/images/logo-lado.png" alt="Ministério Acolher" class="h-12 w-auto">
                     </div>
-                    <p class="text-xs text-brand-light/60 leading-relaxed">
+                    <p class="text-xs text-brand-light/60 leading-relaxed" data-i18n="footer-desc">
                         Um espaço seguro de escuta, cuidado e respeito para quem precisa ser acolhido.
                         Atendimento 100% online, gratuito e sigiloso.
                     </p>
                 </div>
                 <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3">Redes Sociais</h5>
+                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3" data-i18n="footer-redes">Redes Sociais</h5>
                     <a href="https://www.instagram.com/acolher.life/" target="_blank"
                        class="inline-flex items-center gap-2 text-xs text-brand-light/60 hover:text-brand-light transition mb-3"
                        aria-label="Siga o Ministério Acolher no Instagram">
@@ -477,26 +549,26 @@
                         </svg>
                         <span>@acolher.life</span>
                     </a>
-                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3 mt-5">Contato Direto</h5>
-                    <p class="text-xs text-brand-light/60 leading-relaxed">
+                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3 mt-5" data-i18n="footer-contato-titulo">Contato Direto</h5>
+                    <p class="text-xs text-brand-light/60 leading-relaxed" data-i18n="footer-contato-desc">
                         Os contatos dos profissionais são disponibilizados após o preenchimento do formulário de acolhimento acima.
                     </p>
                 </div>
                 <div>
-                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3">Compartilhe</h5>
-                    <p class="text-xs text-brand-light/60 leading-relaxed mb-4">
+                    <h5 class="text-xs font-bold uppercase tracking-widest text-brand-light/50 mb-3" data-i18n="footer-compartilhe-titulo">Compartilhe</h5>
+                    <p class="text-xs text-brand-light/60 leading-relaxed mb-4" data-i18n="footer-compartilhe-desc">
                         Conhece alguém que poderia precisar de acolhimento? Compartilhe esse espaço.
                     </p>
-                    <button onclick="compartilhar()" class="text-xs bg-brand-light/10 hover:bg-brand-light/20 text-brand-light border border-brand-light/20 px-4 py-2 rounded-lg transition">
+                    <button onclick="compartilhar()" class="text-xs bg-brand-light/10 hover:bg-brand-light/20 text-brand-light border border-brand-light/20 px-4 py-2 rounded-lg transition" data-i18n="footer-btn-compartilhar">
                         📤 Compartilhar página
                     </button>
                 </div>
             </div>
             <div class="border-t border-brand-light/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-brand-light/30">
-                <a href="/admin/login" style="color: inherit; opacity: 0.9; font-size: 11px; text-decoration: none;">Estatísticas de acesso</a>
-                <span>© 2025 Ministério Acolher · Todos os direitos reservados · Atendimento sigiloso e ético</span>
+                <a href="/admin/login" style="color: inherit; opacity: 0.9; font-size: 11px; text-decoration: none;" data-i18n="footer-link-estatisticas">Estatísticas de acesso</a>
+                <span data-i18n="footer-copyright">© 2025 Ministério Acolher · Todos os direitos reservados · Atendimento sigiloso e ético</span>
                 <div class="flex items-center gap-4">
-                    <a href="mailto:acessibilidade@acolher.life" class="text-brand-light/40 hover:text-brand-light/70 transition underline underline-offset-2" aria-label="Reportar problema de acessibilidade por e-mail">
+                    <a href="mailto:acessibilidade@acolher.life" class="text-brand-light/40 hover:text-brand-light/70 transition underline underline-offset-2" aria-label="Reportar problema de acessibilidade por e-mail" data-i18n="footer-acessibilidade">
                         ♿ Acessibilidade
                     </a>
                     <span class="text-brand-light/20">·</span>
@@ -506,6 +578,7 @@
         </div>
     </footer>
 
+    <script src="/js/i18n.js"></script>
     <script src="/js/main.js"></script>
 </body>
 

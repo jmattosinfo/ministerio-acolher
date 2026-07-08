@@ -3,6 +3,17 @@
 
 const CORES = ['#7A1C1C', '#C08552', '#4A6C6F', '#D9A441', '#8E9775', '#B0413E', '#5A5A5A', '#3E5C76', '#A16E83', '#6B8F71', '#7A7A7A'];
 
+// Mapa de siglas → nomes completos dos estados (para legenda)
+const ESTADOS_BR = {
+    AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas',
+    BA: 'Bahia', CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo',
+    GO: 'Goiás', MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul',
+    MG: 'Minas Gerais', PA: 'Pará', PB: 'Paraíba', PR: 'Paraná',
+    PE: 'Pernambuco', PI: 'Piauí', RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte',
+    RS: 'Rio Grande do Sul', RO: 'Rondônia', RR: 'Roraima',
+    SC: 'Santa Catarina', SP: 'São Paulo', SE: 'Sergipe', TO: 'Tocantins'
+};
+
 let graficos = {};
 let mapaLeaflet = null;
 let camadaEstados = null;
@@ -60,6 +71,7 @@ async function carregarDados(periodo) {
         desenharGrafico('graficoSexo', 'doughnut', data.sexo);
         desenharGrafico('graficoEstadoCivil', 'doughnut', data.estadoCivil);
         desenharGrafico('graficoMotivo', 'bar', data.motivo, true);
+        desenharGrafico('graficoLocalizacao', 'bar', data.localizacao, true);
         desenharMapa(data.localizacao);
     } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
@@ -241,13 +253,62 @@ function atualizarLegenda(dadosLookup, maxValor) {
         .sort((a, b) => b[1] - a[1]);
 
     if (ordenados.length === 0) {
-        legenda.innerHTML = '<span class="text-brand-soft/60 italic">Nenhum dado de localização registrado.</span>';
+        legenda.innerHTML = '<div class="sem-dados">Nenhum dado de localização registrado.</div>';
         return;
     }
 
-    legenda.innerHTML = ordenados.map(([uf, total]) => {
+    const totalPessoas = ordenados.reduce((s, [_, v]) => s + v, 0);
+    const totalUFs = ordenados.filter(([k]) => /^[A-Z]{2}$/.test(k)).length;
+    const totalOutros = ordenados.filter(([k]) => !/^[A-Z]{2}$/.test(k)).length;
+
+    // Cabeçalho da legenda
+    let html = `
+        <div class="legenda-cabecalho">
+            <span>${totalUFs} estado(s) ${totalOutros > 0 ? `+ ${totalOutros} localidade(s)` : ''}</span>
+            <span class="legenda-total"><strong>${totalPessoas}</strong> pessoa(s) no total</span>
+        </div>
+    `;
+
+    // Só mostra escala se houver pelo menos uma UF
+    if (totalUFs > 0) {
+        html += `<div class="legenda-escala">
+            <span class="legenda-escala-label">Menos</span>
+            <div class="legenda-escala-barra">
+                <span class="legenda-escala-item" style="background:#F4EFE6;"></span>
+                <span class="legenda-escala-item" style="background:#E8D5D5;"></span>
+                <span class="legenda-escala-item" style="background:#D1A8A8;"></span>
+                <span class="legenda-escala-item" style="background:#B87A7A;"></span>
+                <span class="legenda-escala-item" style="background:#9E4D4D;"></span>
+                <span class="legenda-escala-item" style="background:#7A1C1C;"></span>
+            </div>
+            <span class="legenda-escala-label">Mais</span>
+        </div>`;
+    }
+
+    // Itens da legenda
+    ordenados.forEach(([chave, total]) => {
         const cor = getCorPorContagem(total, maxValor);
-        const texto = getCorTexto(total, maxValor);
-        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style="background:${cor};color:${texto};">${uf} ${total}</span>`;
-    }).join(' ');
+        const pct = maxValor > 0 ? (total / maxValor * 100) : 0;
+
+        // Verifica se é UF (2 letras) ou texto livre
+        const ehUF = /^[A-Z]{2}$/.test(chave);
+        const nomeEstado = ehUF ? (ESTADOS_BR[chave] || '') : '';
+
+        html += `
+            <div class="legenda-item" data-chave="${chave}">
+                <span class="legenda-cor" style="background:${cor};"></span>
+                <div class="legenda-info">
+                    <span>
+                        <span class="legenda-sigla">${ehUF ? chave : '📍'}</span>
+                        <span class="legenda-nome">${nomeEstado || chave}</span>
+                    </span>
+                    <span class="legenda-barra">
+                        <span class="legenda-barra-preenchimento" style="width:${pct}%;background:${cor};"></span>
+                    </span>
+                    <span class="legenda-numero">${total} ${total === 1 ? 'pessoa' : 'pessoas'}</span>
+                </div>
+            </div>`;
+    });
+
+    legenda.innerHTML = html;
 }

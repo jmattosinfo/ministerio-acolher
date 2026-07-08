@@ -3,7 +3,8 @@ const express = require('express');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const mysql = require('mysql2/promise');
-const session = require('express-session'); // NOVO
+const session = require('express-session');
+const { enriquecerLocalizacao } = require('./utils/geocode');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -133,6 +134,11 @@ function obterProfissional(perfil) {
     return PROFISSIONAIS[perfil] || null;
 }
 
+// ─── Geocoding via Nominatim (OpenStreetMap) ─────────────────────────────────
+// A função enriquecerLocalizacao() está definida em ./utils/geocode.js
+// É importada no topo deste arquivo e usada no POST /api/cadastro
+// O cache é compartilhado com routes/admin.js via mesmo módulo
+
 // ─── Template de e-mail ──────────────────────────────────────────────────────
 function montarEmailHtml(d, profissional) {
     return `
@@ -172,6 +178,13 @@ app.post('/api/cadastro', async (req, res) => {
     }
 
     try {
+        // Concatena cidade + estado (agora vindos de campos separados no formulário)
+        const cidade = (d.cidade || '').trim();
+        const estado = (d.estado || '').trim().toUpperCase();
+        const localizacaoRaw = cidade && estado ? `${cidade} – ${estado}` : (d.localizacao || '');
+        // Tenta enriquecer via Nominatim (fallback p/ dados sem estado, ex: API externa)
+        const localizacao = await enriquecerLocalizacao(localizacaoRaw);
+
         // Salva no banco
         const conn = await dbPool.getConnection();
         await conn.query(`
@@ -184,7 +197,7 @@ app.post('/api/cadastro', async (req, res) => {
         `, [
             perfil, profissional.nome,
             d.nome || null, d.data_nascimento || null,
-            d.localizacao || null, d.whatsapp || null,
+            localizacao, d.whatsapp || null,
             d.estado_civil || null, d.rede_apoio || null,
             d.motivo_terapia || null, d.preferencia_horario || null,
             d.termo_sigilo ? 1 : 0,

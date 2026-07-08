@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { requireAuth } = require('../middleware/auth');
+const { extrairUFdaString, resolverCidadeParaUF } = require('../utils/geocode');
 
 // Recebe o dbPool já criado no server.js
 module.exports = function (dbPool) {
@@ -97,7 +98,7 @@ module.exports = function (dbPool) {
                 estadoCivil: estadoCivilRows,
                 faixaEtaria: calcularFaixasEtarias(nascimentoRows),
                 motivo: agruparMotivos(motivoRows),
-                localizacao: agregarPorEstado(localizacaoRows)
+                localizacao: await agregarPorEstado(localizacaoRows)
             });
         } catch (err) {
             console.error('❌ Erro ao buscar estatísticas:', err.message);
@@ -158,28 +159,66 @@ function agruparMotivos(linhas) {
 }
 
 // Extrai a UF (sigla do estado) de strings como "Porto Alegre – RS", "SP", etc.
+// Delega para a função compartilhada em utils/geocode.js
 function extrairUF(localizacao) {
-    if (!localizacao || typeof localizacao !== 'string') return null;
-    const trimmed = localizacao.trim();
-    // Tenta separar por "–" (em dash) ou "-" (hífen)
-    const partes = trimmed.split(/[–-]/).map(s => s.trim());
-    if (partes.length > 1) {
-        const uf = partes[partes.length - 1].toUpperCase();
-        if (/^[A-Z]{2}$/.test(uf)) return uf;
-    }
-    // Se a string inteira for uma UF válida
-    if (/^[A-Z]{2}$/.test(trimmed.toUpperCase())) return trimmed.toUpperCase();
-    return null;
+    return extrairUFdaString(localizacao);
 }
 
+// Cache para resoluções de cidade → UF feitas durante a agregação de stats
+const resolucaoCache = new Map();
+
 // Agrega os registros de localização por estado (UF)
-function agregarPorEstado(linhas) {
+// Se a localização não contiver uma UF reconhecível, tenta resolver
+// o nome da cidade via Nominatim (com cache compartilhado).
+// Se mesmo assim não for possível, usa o valor original informado pelo usuário.
+async function agregarPorEstado(linhas) {
     const mapa = new Map();
+
+    // Primeira passada: extrai UF das strings que já têm formato reconhecível
+    const pendentes = []; // valores originais sem UF detectada
     linhas.forEach(({ localizacao }) => {
         const uf = extrairUF(localizacao);
-        const chave = uf || 'Não informado';
-        mapa.set(chave, (mapa.get(chave) || 0) + 1);
+        if (uf) {
+            mapa.set(uf, (mapa.get(uf) || 0) + 1);
+        } else {
+            pendentes.push(localizacao);
+        }
     });
+
+    // Segunda passada: tenta resolver cidades sem UF via Nominatim
+    if (pendentes.length > 0) {
+        // Agrupa cidades iguais para evitar chamadas duplicadas
+        const cidadesUnicas = [...new Set(pendentes.map(s => (s || '').trim().toUpperCase()).filter(Boolean))];
+
+        // Resolve cada cidade única (com cache compartilhado via módulo)
+        const resolucoes = await Promise.all(
+            cidadesUnicas.map(async (cidadeUpper) => {
+                const original = pendentes.find(s => s && s.trim().toUpperCase() === cidadeUpper) || cidadeUpper;
+                const uf = await resolverCidadeParaUF(original);
+                return { cidade: cidadeUpper, uf, original };
+            })
+        );
+
+        const resolucaoMap = new Map(resolucoes.map(r => [r.cidade, { uf: r.uf, original: r.original }]));
+
+        pendentes.forEach((localizacao) => {
+            const chave = localizacao ? localizacao.trim().toUpperCase() : '';
+            const resolucao = chave ? resolucaoMap.get(chave) : null;
+
+            if (resolucao && resolucao.uf) {
+                // Conseguiu resolver → usa a UF
+                mapa.set(resolucao.uf, (mapa.get(resolucao.uf) || 0) + 1);
+            } else {
+                // Não conseguiu resolver → mostra o valor original que o usuário digitou
+                const textoOriginal = (resolucao ? resolucao.original : localizacao || '').trim();
+                const chaveExibicao = textoOriginal
+                    ? (textoOriginal.length > 40 ? textoOriginal.substring(0, 37) + '...' : textoOriginal)
+                    : 'Não informado';
+                mapa.set(chaveExibicao, (mapa.get(chaveExibicao) || 0) + 1);
+            }
+        });
+    }
+
     return Array.from(mapa.entries())
         .map(([chave, total]) => ({ chave, total }))
         .sort((a, b) => b.total - a.total);

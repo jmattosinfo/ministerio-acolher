@@ -30,10 +30,10 @@ document.querySelectorAll('input[name="perfil_triagem"]').forEach(radio => {
         const labelNome = document.getElementById('label-nome');
         if (this.value === 'vitima_abuso') {
             aviso.classList.remove('hidden');
-            labelNome.innerHTML = 'Nome ou codinome <span class="font-normal text-brand-soft/70">(pseudônimo permitido)</span> *';
+            labelNome.innerHTML = I18N.t('form-label-nome-codinome', I18N.currentLang);
         } else {
             aviso.classList.add('hidden');
-            labelNome.innerHTML = 'Nome completo *';
+            labelNome.innerHTML = I18N.t('form-label-nome', I18N.currentLang);
         }
     });
 });
@@ -55,7 +55,7 @@ document.getElementById('acolherForm').addEventListener('submit', async function
     const btnSpinner = document.getElementById('btn-spinner');
     const btnSubmit = document.getElementById('btn-submit');
 
-    btnTexto.innerText = 'Enviando...';
+    btnTexto.innerText = I18N.t('form-btn-enviando', I18N.currentLang);
     btnSpinner.classList.remove('hidden');
     btnSubmit.disabled = true;
 
@@ -73,29 +73,32 @@ document.getElementById('acolherForm').addEventListener('submit', async function
 
             this.style.display = 'none';
 
-            const mensagemPrevia = "Olá, passei pelo site Acolher, e fui direcionado(a) para você. Gostaria de receber acolhimento. Poderia me ajudar?";
+            const lang = I18N.currentLang;
+
+            const mensagemPrevia = lang === 'en'
+                ? "Hello, I came through the Acolher website and was directed to you. I would like to receive support. Could you help me?"
+                : lang === 'es'
+                ? "Hola, llegué a través del sitio web Acolher y fui dirigido(a) a usted. Me gustaría recibir acogida. ¿Podría ayudarme?"
+                : "Olá, passei pelo site Acolher, e fui direcionado(a) para você. Gostaria de receber acolhimento. Poderia me ajudar?";
             const mensagemWhatsApp = encodeURIComponent(mensagemPrevia);
 
             const sucessoDiv = document.getElementById('sucesso');
             sucessoDiv.innerHTML = `
                 <div class="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center text-3xl mx-auto mb-5">✅</div>
-                <h3 class="font-serif text-2xl font-bold text-brand-dark mb-2">Formulário recebido</h3>
+                <h3 class="font-serif text-2xl font-bold text-brand-dark mb-2">${I18N.t('sucesso-titulo', lang)}</h3>
                 <p class="text-brand-soft text-sm leading-relaxed max-w-md mx-auto mb-6">
-                    Suas informações foram encaminhadas com sigilo para
-                    <strong class="text-brand-dark">${prof.nome}</strong>,
-                    o(a) profissional mais indicado(a) para te acolher.
-                    Você será contactado(a) em breve pelo WhatsApp.
+                    ${I18N.t('sucesso-desc', lang, { profissional: prof.nome })}
                 </p>
                 <a href="https://wa.me/${prof.whatsapp}?text=${mensagemWhatsApp}" target="_blank"
-                   aria-label="Abrir conversa no WhatsApp com ${prof.nome}"
+                   aria-label="${I18N.t('sucesso-btn-whatsapp', lang, { profissional: prof.nome })}"
                    class="inline-flex items-center gap-2 bg-[#25D366] text-white font-semibold px-6 py-3 rounded-xl hover:bg-[#20ba5a] transition text-sm shadow-lg">
                     <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.66.986 3.296 1.48 4.805 1.481 5.356 0 9.707-4.333 9.71-9.66 0-2.58-1.01-5.006-2.844-6.834C16.517 2.313 14.166 1.31 11.69 1.31c-5.357 0-9.71 4.333-9.713 9.663-.001 1.748.484 3.454 1.405 4.954L2.38 21.65l6.267-1.642zM17.13 14.13c-.302-.15-1.79-.882-2.067-.983-.277-.1-.478-.15-.678.15-.2.3-.775.98-.95 1.18-.175.2-.35.225-.65.075-1.03-.513-1.74-1.026-2.422-2.188-.18-.3-.18-.56-.05-.71.117-.135.302-.35.45-.525.148-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.678-1.634-.93-2.245-.243-.585-.49-.504-.678-.514-.175-.007-.375-.01-.576-.01-.2 0-.527.075-.802.375-.276.3-1.053 1.03-1.053 2.515s1.08 2.916 1.23 3.116c.15.2 2.123 3.243 5.143 4.545.718.31 1.28.496 1.717.635.722.23 1.38.197 1.9.12.58-.087 1.79-.73 2.04-1.402.25-.673.25-1.25.175-1.373-.075-.123-.275-.2-.575-.35z"/>
                     </svg>
-                    <span>Falar com ${prof.nome}</span>
+                    <span>${I18N.t('sucesso-btn-whatsapp', lang, { profissional: prof.nome })}</span>
                 </a>
                 <p class="text-xs text-brand-soft/50 mt-6">
-                    O atendimento é 100% gratuito e você tem direito a três sessões de aproximadamente 40 minutos.
+                    ${I18N.t('sucesso-rodape', lang)}
                 </p>
             `;
             sucessoDiv.classList.remove('hidden');
@@ -104,13 +107,13 @@ document.getElementById('acolherForm').addEventListener('submit', async function
             throw new Error();
         }
     } catch {
-        btnTexto.innerText = 'Enviar formulário de acolhimento';
+        btnTexto.innerText = I18N.t('form-btn-enviar', I18N.currentLang);
         btnSpinner.classList.add('hidden');
         btnSubmit.disabled = false;
 
         const errDiv = document.createElement('p');
         errDiv.className = 'text-xs text-red-600 text-center mt-3';
-        errDiv.innerText = 'Ocorreu um erro ao enviar. Por favor, tente novamente.';
+        errDiv.innerText = I18N.t('erro-msg', I18N.currentLang);
         btnSubmit.parentElement.after(errDiv);
         setTimeout(() => errDiv.remove(), 6000);
     }
@@ -118,17 +121,18 @@ document.getElementById('acolherForm').addEventListener('submit', async function
 
 // ── Compartilhar ──────────────────────────────────────
 function compartilhar() {
+    const lang = I18N.currentLang;
     if (navigator.share) {
         navigator.share({
             title: 'Ministério Acolher',
-            text: 'Um espaço de escuta, cuidado e respeito — atendimento gratuito e sigiloso.',
+            text: I18N.t('compartilhar-text', lang),
             url: window.location.href
         });
     } else {
         navigator.clipboard.writeText(window.location.href).then(() => {
             const btn = document.querySelector('[onclick="compartilhar()"]');
             const original = btn.innerText;
-            btn.innerText = '✅ Link copiado!';
+            btn.innerText = I18N.t('compartilhar-copiado', lang);
             setTimeout(() => btn.innerText = original, 2500);
         });
     }

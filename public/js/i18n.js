@@ -281,25 +281,50 @@ const I18N = {
             'en': 'Date of birth *',
             'es': 'Fecha de nacimiento *',
         },
+        'form-pais': {
+            'pt-BR': 'País *',
+            'en': 'Country *',
+            'es': 'País *',
+        },
+        'form-placeholder-pais': {
+            'pt-BR': 'Selecione o país...',
+            'en': 'Select the country...',
+            'es': 'Seleccione el país...',
+        },
+        'form-carregando-paises': {
+            'pt-BR': 'Carregando países...',
+            'en': 'Loading countries...',
+            'es': 'Cargando países...',
+        },
         'form-cidade': {
             'pt-BR': 'Cidade *',
             'en': 'City *',
             'es': 'Ciudad *',
         },
         'form-placeholder-cidade': {
-            'pt-BR': 'Ex: Porto Alegre',
-            'en': 'E.g.: São Paulo',
-            'es': 'Ej.: Porto Alegre',
+            'pt-BR': 'Digite sua cidade',
+            'en': 'Type your city',
+            'es': 'Escriba su ciudad',
         },
         'form-estado': {
-            'pt-BR': 'Estado *',
-            'en': 'State *',
-            'es': 'Estado *',
+            'pt-BR': 'Estado / Província',
+            'en': 'State / Province',
+            'es': 'Estado / Provincia',
         },
         'form-placeholder-estado': {
             'pt-BR': 'Selecione o estado...',
             'en': 'Select the state...',
             'es': 'Seleccione el estado...',
+        },
+        'form-estado-nao-aplica': {
+            'pt-BR': 'Não se aplica',
+            'en': 'Not applicable',
+            'es': 'No aplica',
+        },
+        'form-carregando-estados': {
+            'pt-BR': 'Carregando...',
+            'en': 'Loading...',
+            'es': 'Cargando...',
         },
         'form-whatsapp': {
             'pt-BR': 'WhatsApp *',
@@ -524,10 +549,15 @@ const I18N = {
         },
 
         // ── Compartilhar ──
+        'compartilhar-title': {
+            'pt-BR': 'Ministério Acolher | Apoio emocional e espiritual gratuito',
+            'en': 'Ministério Acolher | Free emotional and spiritual support',
+            'es': 'Ministerio Acolher | Apoyo emocional y espiritual gratuito',
+        },
         'compartilhar-text': {
-            'pt-BR': 'Um espaço de escuta, cuidado e respeito — atendimento gratuito e sigiloso.',
-            'en': 'A space for listening, care and respect — free and confidential support.',
-            'es': 'Un espacio de escucha, cuidado y respeto — atención gratuita y confidencial.',
+            'pt-BR': '*Ministério Acolher* | Um espaço de escuta, cuidado e respeito — atendimento 100% gratuito e sigiloso para homens e mulheres que enfrentam violência doméstica, divórcio ou abuso sexual.\n\n💜 O que oferecemos:\n\n✳️ Acolhimento emocional e espiritual especializado\n✳️ Atendimento 100% online, gratuito e sigiloso\n✳️ Profissionais qualificados e humanizados\n✳️ Direcionamento por perfil (masculino, feminino, abuso)\n✳️ Três sessões de acolhimento sem custo\n✳️ Ambiente seguro e sem julgamentos\n\nVocê não está sozinho(a). Compartilhe com quem precisa e ajude essa corrente de cuidado a crescer. 🙏🏽\n\n*Escuta | Cuidado | Fé!*',
+            'en': '*Ministério Acolher* | A space for listening, care and respect — 100% free and confidential support for men and women facing domestic violence, divorce or sexual abuse.\n\n💜 What we offer:\n\n✳️ Specialized emotional and spiritual support\n✳️ 100% online, free and confidential care\n✳️ Qualified and humanized professionals\n✳️ Profile-based referral (men, women, abuse)\n✳️ Three support sessions at no cost\n✳️ Safe and judgment-free environment\n\nYou are not alone. Share with those in need and help this chain of care grow. 🙏🏽\n\n*Listening | Care | Faith!*',
+            'es': '*Ministerio Acolher* | Un espacio de escucha, cuidado y respeto — atención 100% gratuita y confidencial para hombres y mujeres que enfrentan violencia doméstica, divorcio o abuso sexual.\n\n💜 Lo que ofrecemos:\n\n✳️ Acogida emocional y espiritual especializada\n✳️ Atención 100% online, gratuita y confidencial\n✳️ Profesionales calificados y humanizados\n✳️ Derivación por perfil (hombres, mujeres, abuso)\n✳️ Tres sesiones de acogida sin costo\n✳️ Ambiente seguro y sin juicios\n\nNo estás solo(a). Comparte con quien lo necesite y ayuda a crecer esta cadena de cuidado. 🙏🏽\n\n*Escucha | Cuidado | Fe!*',
         },
         'compartilhar-copiado': {
             'pt-BR': '✅ Link copiado!',

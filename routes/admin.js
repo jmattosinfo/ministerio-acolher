@@ -89,13 +89,19 @@ module.exports = function (dbPool) {
                 `SELECT localizacao FROM cadastros ${filtroData}`
             );
 
-            // Agregação do campo "Onde conheceu o Acolher"
-            const [ondeConheceuRows] = await conn.query(
-                `SELECT COALESCE(NULLIF(TRIM(onde_conheceu), ''), 'Não informado') AS chave, COUNT(*) AS total
-                 FROM cadastros ${filtroData}
-                 GROUP BY chave
-                 ORDER BY total DESC`
-            );
+            // Agregação do campo "Onde conheceu o Acolher" — query resiliente
+            let ondeConheceuRows = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT COALESCE(NULLIF(TRIM(onde_conheceu), ''), 'Não informado') AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY chave
+                     ORDER BY total DESC`
+                );
+                ondeConheceuRows = rows;
+            } catch (err) {
+                console.warn('⚠️ Query onde_conheceu falhou (coluna pode não existir):', err.message);
+            }
 
             // Agregação do campo "Rede de apoio"
             const [redeApoioRows] = await conn.query(
@@ -103,6 +109,20 @@ module.exports = function (dbPool) {
                  FROM cadastros ${filtroData}
                  GROUP BY rede_apoio`
             );
+
+            // Agregação do campo "País" — query resiliente (não quebra todo o stats se falhar)
+            let paisesRows = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT COALESCE(NULLIF(TRIM(pais), ''), 'Não informado') AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY chave
+                     ORDER BY total DESC`
+                );
+                paisesRows = rows;
+            } catch (err) {
+                console.warn('⚠️ Query de países falhou (coluna pode não existir):', err.message);
+            }
 
             conn.release();
 
@@ -115,7 +135,8 @@ module.exports = function (dbPool) {
                 motivo: agruparMotivos(motivoRows),
                 localizacao: await agregarPorEstado(localizacaoRows),
                 ondeConheceu: ondeConheceuRows,
-                redeApoio: redeApoioRows
+                redeApoio: redeApoioRows,
+                paises: paisesRows
             });
         } catch (err) {
             console.error('❌ Erro ao buscar estatísticas:', err.message);

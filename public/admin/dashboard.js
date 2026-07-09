@@ -74,7 +74,16 @@ async function carregarDados(periodo) {
         desenharGrafico('graficoLocalizacao', 'bar', data.localizacao, true);
         desenharGrafico('graficoOndeConheceu', 'doughnut', traduzirOndeConheceu(data.ondeConheceu));
         desenharGrafico('graficoRedeApoio', 'doughnut', traduzirRedeApoio(data.redeApoio));
+        desenharGrafico('graficoPaises', 'bar', (data.paises || []).filter(p => p.chave !== 'Brazil' && p.chave !== 'Brasil'), true);
         desenharMapa(data.localizacao);
+
+        // Se houver dados de países estrangeiros, adiciona marcadores no mapa
+        const paisesEstrangeiros = (data.paises || []).filter(p =>
+            p.chave !== 'Brazil' && p.chave !== 'Brasil' && p.chave !== 'Não informado'
+        );
+        if (paisesEstrangeiros.length > 0) {
+            carregarMarcadoresPaises(paisesEstrangeiros);
+        }
     } catch (err) {
         console.error('Erro ao carregar dados do dashboard:', err);
     }
@@ -131,11 +140,11 @@ function desenharMapa(dadosEstado) {
     if (!mapaLeaflet) {
         try {
             mapaLeaflet = L.map('mapaLocalizacao', {
-                center: [-15.5, -52],
-                zoom: 4,
-                minZoom: 3,
-                maxZoom: 7,
-                zoomControl: false,
+                center: [15, -30],
+                zoom: 2,
+                minZoom: 2,
+                maxZoom: 10,
+                zoomControl: true,
                 attributionControl: false
             });
 
@@ -225,11 +234,10 @@ function desenharMapa(dadosEstado) {
                 }
             }).addTo(mapaLeaflet);
 
-            // Ajusta o zoom para cobrir o Brasil
-            try {
-                mapaLeaflet.fitBounds(camadaEstados.getBounds(), { padding: [20, 20] });
-            } catch (e) {
-                console.warn('Erro ao ajustar bounds do mapa:', e);
+            // Se existirem dados de estados brasileiros, mantém o zoom inicial;
+            // o usuário pode navegar livremente para ver o mundo todo
+            if (mapaLeaflet) {
+                mapaLeaflet.setView([15, -30], 2);
             }
 
             // Invalida tamanho novamente após carregar os dados
@@ -358,4 +366,86 @@ function traduzirRedeApoio(linhas) {
             || l.chave;
         return { chave, total: l.total };
     });
+}
+
+// ─── Cache de coordenadas dos países ──────────────────────────────────────
+let cacheCoordenadasPaises = null;
+
+// ─── Marcadores de países estrangeiros no mapa ──────────────────────────
+let camadaPaisesEstrangeiros = null;
+
+async function carregarMarcadoresPaises(paisesComRegistros) {
+    if (!mapaLeaflet) return;
+
+    // Remove camada anterior se existir
+    if (camadaPaisesEstrangeiros) {
+        mapaLeaflet.removeLayer(camadaPaisesEstrangeiros);
+        camadaPaisesEstrangeiros = null;
+    }
+
+    try {
+        // Carrega coordenadas uma única vez (cache)
+        if (!cacheCoordenadasPaises) {
+            const resp = await fetch('/api/location/countries/coordinates');
+            const data = await resp.json();
+            if (!data.ok) throw new Error('Falha ao carregar coordenadas');
+            cacheCoordenadasPaises = data.dados;
+        }
+
+        // Mapa de nome do país → dados de coordenadas
+        const coordsPorNome = {};
+        (cacheCoordenadasPaises || []).forEach(c => {
+            coordsPorNome[c.label.toLowerCase()] = c;
+        });
+
+        // Prepara marcadores para países estrangeiros com registros
+        const marcadores = [];
+        paisesComRegistros.forEach(p => {
+            const nome = p.chave.trim().toLowerCase();
+            const coords = coordsPorNome[nome];
+            // Tenta também buscar pelo código (caso o banco armazene código ISO)
+            if (!coords) {
+                const encontrado = (cacheCoordenadasPaises || []).find(c =>
+                    c.value === p.chave.trim().toUpperCase()
+                );
+                if (encontrado) {
+                    marcadores.push({ ...encontrado, total: p.total });
+                }
+                return;
+            }
+            marcadores.push({ ...coords, total: p.total });
+        });
+
+        if (marcadores.length === 0) return;
+
+        // Cria grupo de marcadores
+        camadaPaisesEstrangeiros = L.layerGroup();
+
+        const maxTotal = Math.max(...marcadores.map(m => m.total), 1);
+
+        marcadores.forEach(m => {
+            // Raio proporcional à quantidade de registros (entre 8 e 30px)
+            const raio = 8 + (m.total / maxTotal) * 22;
+
+            const marker = L.circleMarker([m.lat, m.lng], {
+                radius: raio,
+                fillColor: '#E05A5A',
+                color: '#7A1C1C',
+                weight: 2,
+                opacity: 0.9,
+                fillOpacity: 0.6
+            });
+
+            marker.bindTooltip(
+                `<strong>${m.label}</strong><br>${m.total} ${m.total === 1 ? 'pessoa' : 'pessoas'}`,
+                { sticky: true, direction: 'top', offset: [0, -4] }
+            );
+
+            camadaPaisesEstrangeiros.addLayer(marker);
+        });
+
+        camadaPaisesEstrangeiros.addTo(mapaLeaflet);
+    } catch (err) {
+        console.error('Erro ao carregar marcadores de países:', err);
+    }
 }

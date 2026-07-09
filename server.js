@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const mysql = require('mysql2/promise');
 const session = require('express-session');
 const { enriquecerLocalizacao } = require('./utils/geocode');
+const locationRoutes = require('./routes/location');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,7 +48,8 @@ async function inicializarBanco() {
                 profissional_responsavel VARCHAR(50)  NOT NULL,
                 nome                     VARCHAR(150) NOT NULL,
                 data_nascimento          DATE,
-                localizacao              VARCHAR(150),
+                localizacao              VARCHAR(200),
+                pais                     VARCHAR(100),
                 whatsapp                 VARCHAR(30)  NOT NULL,
                 estado_civil             VARCHAR(30),
                 rede_apoio               VARCHAR(30),
@@ -60,6 +62,28 @@ async function inicializarBanco() {
                 criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Migração: adiciona colunas que podem não existir em tabelas antigas
+        const colunasNecessarias = {
+            'pais': 'VARCHAR(100) AFTER localizacao',
+            'onde_conheceu': 'VARCHAR(50) AFTER preferencia_horario'
+        };
+        for (const [coluna, definicao] of Object.entries(colunasNecessarias)) {
+            try {
+                const [existe] = await conn.query(
+                    `SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cadastros' AND COLUMN_NAME = ?`,
+                    [coluna]
+                );
+                if (existe[0].total === 0) {
+                    await conn.query(`ALTER TABLE cadastros ADD COLUMN ${coluna} ${definicao}`);
+                    console.log(`✅ Coluna "${coluna}" adicionada com sucesso.`);
+                }
+            } catch (e) {
+                console.warn(`⚠️ Não foi possível verificar/adicionar coluna "${coluna}":`, e.message);
+            }
+        }
+
         conn.release();
         console.log('✅ Banco de dados inicializado com sucesso.');
     } catch (err) {
@@ -69,9 +93,12 @@ async function inicializarBanco() {
 
 inicializarBanco();
 
-// ─── Rotas do painel administrativo (NOVO) ───────────────────────────────────
+// ─── Rotas do painel administrativo ─────────────────────────────────────────
 const adminRoutes = require('./routes/admin')(dbPool);
 app.use('/admin', adminRoutes);
+
+// ─── Rotas de localização (países, estados, cidades) ────────────────────────
+app.use('/api/location', locationRoutes);
 
 // ─── Configuração do Nodemailer (Brevo) ─────────────────────────────────────
 const transporter = nodemailer.createTransport({
@@ -153,6 +180,7 @@ function montarEmailHtml(d, profissional) {
                 <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Nome</td><td style="padding:8px;">${d.nome || '-'}</td></tr>
                 <tr><td style="padding:8px;font-weight:bold;">Data de nascimento</td><td style="padding:8px;">${d.data_nascimento || '-'}</td></tr>
                 <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Cidade / Estado</td><td style="padding:8px;">${d.localizacao || '-'}</td></tr>
+                <tr><td style="padding:8px;font-weight:bold;">País</td><td style="padding:8px;">${d.pais || '-'}</td></tr>
                 <tr><td style="padding:8px;font-weight:bold;">WhatsApp</td><td style="padding:8px;">${d.whatsapp || '-'}</td></tr>
                 <tr style="background:#F4EFE6"><td style="padding:8px;font-weight:bold;">Estado civil</td><td style="padding:8px;">${d.estado_civil || '-'}</td></tr>
                 <tr><td style="padding:8px;font-weight:bold;">Rede de apoio</td><td style="padding:8px;">${d.rede_apoio || '-'}</td></tr>
@@ -179,15 +207,19 @@ app.post('/api/cadastro', async (req, res) => {
         return res.status(400).json({ ok: false, mensagem: 'Perfil de triagem inválido.' });
     }
 
-    // Valida cidade e estado (obrigatórios)
+    // Valida cidade e país (obrigatórios)
     const cidade = (d.cidade || '').trim();
-    const estado = (d.estado || '').trim().toUpperCase();
-    if (!cidade || !estado) {
-        return res.status(400).json({ ok: false, mensagem: 'Cidade e estado são obrigatórios.' });
+    const estado = (d.estado || '').trim();
+    const pais = (d.pais || '').trim();
+    if (!cidade || !pais) {
+        return res.status(400).json({ ok: false, mensagem: 'Cidade e país são obrigatórios.' });
     }
 
     try {
-        const localizacaoRaw = `${cidade} – ${estado}`;
+        // Monta localizacao: "cidade, estado – país" se estado existir, senão "cidade – país"
+        const localizacaoRaw = estado
+            ? `${cidade}, ${estado} – ${pais}`
+            : `${cidade} – ${pais}`;
         // Tenta enriquecer via Nominatim (fallback p/ dados sem estado, ex: API externa)
         const localizacao = await enriquecerLocalizacao(localizacaoRaw);
 
@@ -196,15 +228,15 @@ app.post('/api/cadastro', async (req, res) => {
         await conn.query(`
             INSERT INTO cadastros (
                 perfil_triagem, profissional_responsavel,
-                nome, data_nascimento, localizacao, whatsapp,
+                nome, data_nascimento, localizacao, pais, whatsapp,
                 estado_civil, rede_apoio, motivo_terapia, preferencia_horario,
                 onde_conheceu,
                 termo_sigilo, termo_sessoes, termo_gratuidade
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             perfil, profissional.nome,
             d.nome || null, d.data_nascimento || null,
-            localizacao, d.whatsapp || null,
+            localizacao, pais || null, d.whatsapp || null,
             d.estado_civil || null, d.rede_apoio || null,
             d.motivo_terapia || null, d.preferencia_horario || null,
             d.onde_conheceu || null,

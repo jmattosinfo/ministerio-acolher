@@ -401,41 +401,21 @@
                             <input type="date" id="campo-nascimento" name="data_nascimento" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
                         </div>
                         <div>
-                            <label for="campo-cidade" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-cidade">Cidade *</label>
-                            <input type="text" id="campo-cidade" name="cidade" data-i18n-placeholder="form-placeholder-cidade" placeholder="Ex: Porto Alegre" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <label for="campo-pais" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-pais">País *</label>
+                            <select id="campo-pais" name="pais" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="" data-i18n="form-placeholder-pais">Selecione o país...</option>
+                            </select>
+                        </div>
+                        <div id="div-estado">
+                            <label for="campo-estado" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-estado">Estado / Província</label>
+                            <select id="campo-estado" name="estado" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                                <option value="" data-i18n="form-placeholder-estado">Selecione o estado...</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="campo-estado" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-estado">Estado *</label>
-                            <select id="campo-estado" name="estado" required aria-required="true" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
-                                <option value="" data-i18n="form-placeholder-estado">Selecione o estado...</option>
-                                <option value="AC">Acre</option>
-                                <option value="AL">Alagoas</option>
-                                <option value="AP">Amapá</option>
-                                <option value="AM">Amazonas</option>
-                                <option value="BA">Bahia</option>
-                                <option value="CE">Ceará</option>
-                                <option value="DF">Distrito Federal</option>
-                                <option value="ES">Espírito Santo</option>
-                                <option value="GO">Goiás</option>
-                                <option value="MA">Maranhão</option>
-                                <option value="MT">Mato Grosso</option>
-                                <option value="MS">Mato Grosso do Sul</option>
-                                <option value="MG">Minas Gerais</option>
-                                <option value="PA">Pará</option>
-                                <option value="PB">Paraíba</option>
-                                <option value="PR">Paraná</option>
-                                <option value="PE">Pernambuco</option>
-                                <option value="PI">Piauí</option>
-                                <option value="RJ">Rio de Janeiro</option>
-                                <option value="RN">Rio Grande do Norte</option>
-                                <option value="RS">Rio Grande do Sul</option>
-                                <option value="RO">Rondônia</option>
-                                <option value="RR">Roraima</option>
-                                <option value="SC">Santa Catarina</option>
-                                <option value="SP">São Paulo</option>
-                                <option value="SE">Sergipe</option>
-                                <option value="TO">Tocantins</option>
-                            </select>
+                            <label for="campo-cidade" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-cidade">Cidade *</label>
+                            <input type="text" id="campo-cidade" name="cidade" list="lista-cidades" data-i18n-placeholder="form-placeholder-cidade" placeholder="Ex: Porto Alegre" required aria-required="true" autocomplete="off" class="w-full bg-brand-cream/30 border border-brand-muted rounded-lg px-4 py-2.5 focus:outline-none focus:border-brand-dark text-sm transition">
+                            <datalist id="lista-cidades"></datalist>
                         </div>
                         <div>
                             <label for="campo-whatsapp" class="block text-xs font-bold text-brand-dark uppercase mb-1.5" data-i18n="form-whatsapp">WhatsApp *</label>

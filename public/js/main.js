@@ -82,6 +82,173 @@ if (campoWhatsapp) {
     });
 }
 
+// ── Campos dinâmicos: País, Estado, Cidade ──────────
+const campoPais = document.getElementById('campo-pais');
+const campoEstado = document.getElementById('campo-estado');
+const campoCidade = document.getElementById('campo-cidade');
+const divEstado = document.getElementById('div-estado');
+const listaCidades = document.getElementById('lista-cidades');
+
+// Cache para evitar múltiplas chamadas à API
+const cacheCidades = {};
+
+// Carrega lista de países ao iniciar
+if (campoPais) {
+    (async function carregarPaises() {
+        try {
+            const resp = await fetch('/api/location/countries');
+            const data = await resp.json();
+            if (!data.ok) throw new Error('Falha ao carregar países');
+
+            // Ordena países alfabeticamente (Brasil primeiro)
+            const brIndex = data.dados.findIndex(c => c.value === 'BR');
+            const paises = [];
+            if (brIndex >= 0) paises.push(data.dados[brIndex]);
+            data.dados.forEach((c, i) => {
+                if (i !== brIndex) paises.push(c);
+            });
+
+            // Preenche o select
+            paises.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.value;
+                opt.textContent = p.label;
+                if (p.value === 'BR') opt.selected = true;
+                campoPais.appendChild(opt);
+            });
+
+            // Se Brasil foi pré-selecionado, carrega estados
+            if (brIndex >= 0) {
+                await carregarEstados('BR');
+            }
+        } catch (err) {
+            console.error('Erro ao carregar países:', err);
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = I18N.t('form-carregando-paises', I18N.currentLang);
+            campoPais.appendChild(opt);
+        }
+    })();
+
+    // Ao mudar de país, recarrega estados e limpa cidade
+    campoPais.addEventListener('change', async function () {
+        const codigo = this.value;
+        campoCidade.value = '';
+        listaCidades.innerHTML = '';
+        if (codigo) {
+            await carregarEstados(codigo);
+        } else {
+            campoEstado.innerHTML = '<option value="">' + I18N.t('form-placeholder-estado', I18N.currentLang) + '</option>';
+            divEstado.classList.remove('hidden');
+            campoEstado.disabled = false;
+            campoEstado.removeAttribute('required');
+        }
+    });
+}
+
+async function carregarEstados(countryCode) {
+    if (!campoEstado || !divEstado) return;
+
+    campoEstado.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = I18N.t('form-carregando-estados', I18N.currentLang);
+    campoEstado.appendChild(placeholder);
+    campoEstado.disabled = true;
+    divEstado.classList.remove('hidden');
+
+    try {
+        const resp = await fetch(`/api/location/states/${countryCode}`);
+        const data = await resp.json();
+        if (!data.ok) throw new Error('Falha ao carregar estados');
+
+        campoEstado.innerHTML = '';
+
+        if (data.dados && data.dados.length > 0) {
+            // País tem estados/províncias → exibe dropdown
+            const vazio = document.createElement('option');
+            vazio.value = '';
+            vazio.textContent = I18N.t('form-placeholder-estado', I18N.currentLang);
+            campoEstado.appendChild(vazio);
+
+            data.dados.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.label;
+                opt.textContent = e.label;
+                campoEstado.appendChild(opt);
+            });
+
+            campoEstado.disabled = false;
+            campoEstado.required = false; // estado é opcional
+            divEstado.classList.remove('hidden');
+        } else {
+            // País sem estados → oculta campo e marca como "Não se aplica"
+            campoEstado.innerHTML = '';
+            const naoAplica = document.createElement('option');
+            naoAplica.value = '';
+            naoAplica.textContent = I18N.t('form-estado-nao-aplica', I18N.currentLang);
+            campoEstado.appendChild(naoAplica);
+            campoEstado.disabled = true;
+            campoEstado.required = false;
+            divEstado.classList.add('hidden');
+        }
+    } catch (err) {
+        console.error('Erro ao carregar estados:', err);
+        campoEstado.innerHTML = '';
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = I18N.t('form-placeholder-estado', I18N.currentLang);
+        campoEstado.appendChild(opt);
+        campoEstado.disabled = false;
+    }
+}
+
+// Ao mudar de estado, carrega cidades para o datalist
+if (campoEstado) {
+    campoEstado.addEventListener('change', async function () {
+        const estado = this.value;
+        const pais = campoPais ? campoPais.value : '';
+        campoCidade.value = '';
+        listaCidades.innerHTML = '';
+
+        if (estado && pais) {
+            const cacheKey = `${pais}-${estado}`;
+            if (cacheCidades[cacheKey]) {
+                preencherDatalist(cacheCidades[cacheKey]);
+                return;
+            }
+
+            try {
+                // Busca o código ISO do estado
+                const respEstados = await fetch(`/api/location/states/${pais}`);
+                const dataEstados = await respEstados.json();
+                if (!dataEstados.ok) return;
+
+                const estadoEncontrado = dataEstados.dados.find(e => e.label === estado);
+                if (!estadoEncontrado) return;
+
+                const respCidades = await fetch(`/api/location/cities/${pais}/${estadoEncontrado.value}`);
+                const dataCidades = await respCidades.json();
+                if (!dataCidades.ok) return;
+
+                cacheCidades[cacheKey] = dataCidades.dados || [];
+                preencherDatalist(cacheCidades[cacheKey]);
+            } catch (err) {
+                console.error('Erro ao carregar cidades:', err);
+            }
+        }
+    });
+}
+
+function preencherDatalist(cidades) {
+    listaCidades.innerHTML = '';
+    (cidades || []).forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome;
+        listaCidades.appendChild(opt);
+    });
+}
+
 // ── Perfil → aviso sigilo ────────────────────────────
 document.querySelectorAll('input[name="perfil_triagem"]').forEach(radio => {
     radio.addEventListener('change', function () {
@@ -130,6 +297,26 @@ document.getElementById('acolherForm').addEventListener('submit', async function
         ondeConheceu.classList.add('border-red-400', 'bg-red-50/30');
         ondeConheceu.focus();
         ondeConheceu.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // Valida país (obrigatório)
+    if (!campoPais || !campoPais.value) {
+        if (campoPais) {
+            campoPais.classList.add('border-red-400', 'bg-red-50/30');
+            campoPais.focus();
+            campoPais.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
+
+    // Valida cidade (obrigatória)
+    if (!campoCidade || !campoCidade.value.trim()) {
+        if (campoCidade) {
+            campoCidade.classList.add('border-red-400', 'bg-red-50/30');
+            campoCidade.focus();
+            campoCidade.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
     }
 
@@ -206,19 +393,39 @@ document.getElementById('acolherForm').addEventListener('submit', async function
 // ── Compartilhar ──────────────────────────────────────
 function compartilhar() {
     const lang = I18N.currentLang;
+    const titulo = I18N.t('compartilhar-title', lang);
+    const texto = I18N.t('compartilhar-text', lang);
+    const url = window.location.href;
+    const btn = document.getElementById('btn-compartilhar');
+    const textoOriginal = btn ? btn.innerText : '';
+    // Monta mensagem com o link uma única vez
+    const textoComLink = texto + '\n\n*Acesse:*\n' + url;
+
+    // Feedback visual
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; }
+
+    const restaurar = (feedback = null) => {
+        if (!btn) return;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        if (feedback) {
+            btn.innerText = feedback;
+            setTimeout(() => { btn.innerText = textoOriginal; }, 2500);
+        }
+    };
+
     if (navigator.share) {
-        navigator.share({
-            title: 'Ministério Acolher',
-            text: I18N.t('compartilhar-text', lang),
-            url: window.location.href
-        });
+        navigator.share({ title: titulo, text: textoComLink })
+            .then(() => restaurar())
+            .catch(() => restaurar());
     } else {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-            const btn = document.querySelector('[onclick="compartilhar()"]');
-            const original = btn.innerText;
-            btn.innerText = I18N.t('compartilhar-copiado', lang);
-            setTimeout(() => btn.innerText = original, 2500);
-        });
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textoComLink).then(() => {
+                restaurar(I18N.t('compartilhar-copiado', lang));
+            }).catch(() => restaurar());
+        } else {
+            restaurar();
+        }
     }
 }
 

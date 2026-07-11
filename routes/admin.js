@@ -3,7 +3,6 @@ const express = require('express');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { requireAuth } = require('../middleware/auth');
-const { extrairUFdaString, resolverCidadeParaUF } = require('../utils/geocode');
 
 // Recebe o dbPool já criado no server.js
 module.exports = function (dbPool) {
@@ -45,52 +44,100 @@ module.exports = function (dbPool) {
         res.sendFile(path.join(__dirname, '..', 'views', 'admin', 'dashboard.html'));
     });
 
-    // ─── API de estatísticas (JSON protegido) ─────────────────────────────
+    // ─── API de estatísticas (JSON protegido) — 100% resiliente ──────────
     router.get('/api/stats', requireAuth, async (req, res) => {
-        const periodo = req.query.periodo || 'todos'; // semana | mes | ano | todos
+        const periodo = req.query.periodo || 'todos';
 
         let filtroData = '';
         if (periodo === 'semana') filtroData = 'WHERE criado_em >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
         else if (periodo === 'mes') filtroData = 'WHERE criado_em >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
         else if (periodo === 'ano') filtroData = 'WHERE criado_em >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
 
+        let conn;
         try {
-            const conn = await dbPool.getConnection();
+            conn = await dbPool.getConnection();
+        } catch (err) {
+            console.error('❌ Erro de conexão com o banco:', err.message);
+            return res.status(500).json({ ok: false, mensagem: 'Erro de conexão com o banco de dados.' });
+        }
 
-            const [totalRows] = await conn.query(
-                `SELECT COUNT(*) AS total FROM cadastros ${filtroData}`
-            );
+        try {
+            // --- Total de pessoas ---
+            let total = 0;
+            try {
+                const [rows] = await conn.query(`SELECT COUNT(*) AS total FROM cadastros ${filtroData}`);
+                total = rows[0]?.total || 0;
+            } catch (err) {
+                console.warn('⚠️ Query total falhou:', err.message);
+            }
 
-            const [sexoRows] = await conn.query(
-                `SELECT perfil_triagem AS chave, COUNT(*) AS total
-                 FROM cadastros ${filtroData}
-                 GROUP BY perfil_triagem`
-            );
+            // --- Perfil de triagem (sexo) ---
+            let sexo = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT perfil_triagem AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY perfil_triagem`
+                );
+                sexo = rows;
+            } catch (err) {
+                console.warn('⚠️ Query perfil_triagem falhou:', err.message);
+            }
 
-            const [estadoCivilRows] = await conn.query(
-                `SELECT COALESCE(estado_civil, 'Não informado') AS chave, COUNT(*) AS total
-                 FROM cadastros ${filtroData}
-                 GROUP BY estado_civil`
-            );
+            // --- Estado civil ---
+            let estadoCivil = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT COALESCE(estado_civil, 'Não informado') AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY estado_civil`
+                );
+                estadoCivil = rows;
+            } catch (err) {
+                console.warn('⚠️ Query estado_civil falhou:', err.message);
+            }
 
-            const [nascimentoRows] = await conn.query(
-                `SELECT data_nascimento FROM cadastros ${filtroData}`
-            );
+            // --- Data de nascimento (para faixa etária) ---
+            let nascimento = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT data_nascimento FROM cadastros ${filtroData}`
+                );
+                nascimento = rows;
+            } catch (err) {
+                console.warn('⚠️ Query data_nascimento falhou:', err.message);
+            }
 
-            const [motivoRows] = await conn.query(
-                `SELECT COALESCE(NULLIF(TRIM(motivo_terapia), ''), 'Não informado') AS chave, COUNT(*) AS total
-                 FROM cadastros ${filtroData}
-                 GROUP BY chave
-                 ORDER BY total DESC`
-            );
+            // --- Motivo da terapia ---
+            let motivo = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT COALESCE(NULLIF(TRIM(motivo_terapia), ''), 'Não informado') AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY chave
+                     ORDER BY total DESC`
+                );
+                motivo = rows;
+            } catch (err) {
+                console.warn('⚠️ Query motivo_terapia falhou:', err.message);
+            }
 
-            // Busca dados brutos de localização para agregar por estado no JS
-            const [localizacaoRows] = await conn.query(
-                `SELECT localizacao FROM cadastros ${filtroData}`
-            );
+            // --- Localização (Cidade/Estado) ---
+            let localizacao = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT COALESCE(NULLIF(TRIM(localizacao), ''), 'Não informado') AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY chave
+                     ORDER BY total DESC`
+                );
+                localizacao = rows;
+            } catch (err) {
+                console.warn('⚠️ Query localizacao falhou:', err.message);
+            }
 
-            // Agregação do campo "Onde conheceu o Acolher" — query resiliente
-            let ondeConheceuRows = [];
+            // --- Onde conheceu o Acolher ---
+            let ondeConheceu = [];
             try {
                 const [rows] = await conn.query(
                     `SELECT COALESCE(NULLIF(TRIM(onde_conheceu), ''), 'Não informado') AS chave, COUNT(*) AS total
@@ -98,20 +145,27 @@ module.exports = function (dbPool) {
                      GROUP BY chave
                      ORDER BY total DESC`
                 );
-                ondeConheceuRows = rows;
+                ondeConheceu = rows;
             } catch (err) {
-                console.warn('⚠️ Query onde_conheceu falhou (coluna pode não existir):', err.message);
+                console.warn('⚠️ Query onde_conheceu falhou:', err.message);
             }
 
-            // Agregação do campo "Rede de apoio"
-            const [redeApoioRows] = await conn.query(
-                `SELECT COALESCE(NULLIF(TRIM(rede_apoio), ''), 'Não informado') AS chave, COUNT(*) AS total
-                 FROM cadastros ${filtroData}
-                 GROUP BY rede_apoio`
-            );
+            // --- Rede de apoio ---
+            let redeApoio = [];
+            try {
+                const [rows] = await conn.query(
+                    `SELECT COALESCE(NULLIF(TRIM(rede_apoio), ''), 'Não informado') AS chave, COUNT(*) AS total
+                     FROM cadastros ${filtroData}
+                     GROUP BY chave
+                     ORDER BY total DESC`
+                );
+                redeApoio = rows;
+            } catch (err) {
+                console.warn('⚠️ Query rede_apoio falhou:', err.message);
+            }
 
-            // Agregação do campo "País" — query resiliente (não quebra todo o stats se falhar)
-            let paisesRows = [];
+            // --- Países ---
+            let paises = [];
             try {
                 const [rows] = await conn.query(
                     `SELECT COALESCE(NULLIF(TRIM(pais), ''), 'Não informado') AS chave, COUNT(*) AS total
@@ -119,27 +173,28 @@ module.exports = function (dbPool) {
                      GROUP BY chave
                      ORDER BY total DESC`
                 );
-                paisesRows = rows;
+                paises = rows;
             } catch (err) {
-                console.warn('⚠️ Query de países falhou (coluna pode não existir):', err.message);
+                console.warn('⚠️ Query paises falhou:', err.message);
             }
 
             conn.release();
 
             res.json({
                 ok: true,
-                total: totalRows[0].total,
-                sexo: sexoRows,
-                estadoCivil: estadoCivilRows,
-                faixaEtaria: calcularFaixasEtarias(nascimentoRows),
-                motivo: agruparMotivos(motivoRows),
-                localizacao: await agregarPorEstado(localizacaoRows),
-                ondeConheceu: ondeConheceuRows,
-                redeApoio: redeApoioRows,
-                paises: paisesRows
+                total,
+                sexo,
+                estadoCivil,
+                faixaEtaria: calcularFaixasEtarias(nascimento),
+                motivo: agruparMotivos(motivo),
+                localizacao,
+                ondeConheceu,
+                redeApoio,
+                paises
             });
         } catch (err) {
-            console.error('❌ Erro ao buscar estatísticas:', err.message);
+            console.error('❌ Erro inesperado ao buscar estatísticas:', err.message);
+            if (conn) try { conn.release(); } catch (_) {}
             res.status(500).json({ ok: false, mensagem: 'Erro ao buscar estatísticas.' });
         }
     });
@@ -196,68 +251,3 @@ function agruparMotivos(linhas) {
     return topDez;
 }
 
-// Extrai a UF (sigla do estado) de strings como "Porto Alegre – RS", "SP", etc.
-// Delega para a função compartilhada em utils/geocode.js
-function extrairUF(localizacao) {
-    return extrairUFdaString(localizacao);
-}
-
-// Cache para resoluções de cidade → UF feitas durante a agregação de stats
-const resolucaoCache = new Map();
-
-// Agrega os registros de localização por estado (UF)
-// Se a localização não contiver uma UF reconhecível, tenta resolver
-// o nome da cidade via Nominatim (com cache compartilhado).
-// Se mesmo assim não for possível, usa o valor original informado pelo usuário.
-async function agregarPorEstado(linhas) {
-    const mapa = new Map();
-
-    // Primeira passada: extrai UF das strings que já têm formato reconhecível
-    const pendentes = []; // valores originais sem UF detectada
-    linhas.forEach(({ localizacao }) => {
-        const uf = extrairUF(localizacao);
-        if (uf) {
-            mapa.set(uf, (mapa.get(uf) || 0) + 1);
-        } else {
-            pendentes.push(localizacao);
-        }
-    });
-
-    // Segunda passada: tenta resolver cidades sem UF via Nominatim
-    if (pendentes.length > 0) {
-        // Agrupa cidades iguais para evitar chamadas duplicadas
-        const cidadesUnicas = [...new Set(pendentes.map(s => (s || '').trim().toUpperCase()).filter(Boolean))];
-
-        // Resolve cada cidade única (com cache compartilhado via módulo)
-        const resolucoes = await Promise.all(
-            cidadesUnicas.map(async (cidadeUpper) => {
-                const original = pendentes.find(s => s && s.trim().toUpperCase() === cidadeUpper) || cidadeUpper;
-                const uf = await resolverCidadeParaUF(original);
-                return { cidade: cidadeUpper, uf, original };
-            })
-        );
-
-        const resolucaoMap = new Map(resolucoes.map(r => [r.cidade, { uf: r.uf, original: r.original }]));
-
-        pendentes.forEach((localizacao) => {
-            const chave = localizacao ? localizacao.trim().toUpperCase() : '';
-            const resolucao = chave ? resolucaoMap.get(chave) : null;
-
-            if (resolucao && resolucao.uf) {
-                // Conseguiu resolver → usa a UF
-                mapa.set(resolucao.uf, (mapa.get(resolucao.uf) || 0) + 1);
-            } else {
-                // Não conseguiu resolver → mostra o valor original que o usuário digitou
-                const textoOriginal = (resolucao ? resolucao.original : localizacao || '').trim();
-                const chaveExibicao = textoOriginal
-                    ? (textoOriginal.length > 40 ? textoOriginal.substring(0, 37) + '...' : textoOriginal)
-                    : 'Não informado';
-                mapa.set(chaveExibicao, (mapa.get(chaveExibicao) || 0) + 1);
-            }
-        });
-    }
-
-    return Array.from(mapa.entries())
-        .map(([chave, total]) => ({ chave, total }))
-        .sort((a, b) => b.total - a.total);
-}

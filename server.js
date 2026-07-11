@@ -4,7 +4,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const mysql = require('mysql2/promise');
 const session = require('express-session');
-const { enriquecerLocalizacao } = require('./utils/geocode');
+const { enriquecerLocalizacao, estadoParaSigla } = require('./utils/geocode');
 const locationRoutes = require('./routes/location');
 
 const app = express();
@@ -216,10 +216,21 @@ app.post('/api/cadastro', async (req, res) => {
     }
 
     try {
-        // Monta localizacao: "cidade, estado – país" se estado existir, senão "cidade – país"
-        const localizacaoRaw = estado
-            ? `${cidade}, ${estado} – ${pais}`
-            : `${cidade} – ${pais}`;
+        // Monta localizacao com formato padronizado para permitir agregação por UF no dashboard
+        let localizacaoRaw;
+        if (estado && pais === 'BR') {
+            // Para o Brasil, converte o nome completo do estado para a sigla UF
+            // Ex: "Rio Grande do Sul" → "RS", "SP" (já sigla) → "SP"
+            const uf = /^[A-Z]{2}$/i.test(estado)
+                ? estado.toUpperCase()
+                : estadoParaSigla(estado.toUpperCase()) || estado;
+            localizacaoRaw = `${cidade} – ${uf}`;
+        } else if (estado) {
+            // Para outros países com estado/província
+            localizacaoRaw = `${cidade}, ${estado} – ${pais}`;
+        } else {
+            localizacaoRaw = `${cidade} – ${pais}`;
+        }
         // Tenta enriquecer via Nominatim (fallback p/ dados sem estado, ex: API externa)
         const localizacao = await enriquecerLocalizacao(localizacaoRaw);
 
@@ -245,6 +256,9 @@ app.post('/api/cadastro', async (req, res) => {
             d.termo_gratuidade ? 1 : 0
         ]);
         conn.release();
+
+        // Garante que o campo localizacao esteja disponível no template de e-mail
+        d.localizacao = localizacaoRaw;
 
         // Dispara e-mail para o profissional
         await transporter.sendMail({

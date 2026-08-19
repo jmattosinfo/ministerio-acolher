@@ -478,6 +478,11 @@ const I18N = {
             'en': 'The service is 100% free and you are entitled to three sessions of approximately 40 minutes.',
             'es': 'La atención es 100% gratuita y tiene derecho a tres sesiones de aproximadamente 40 minutos.',
         },
+        'sucesso-redirecionando': {
+            'pt-BR': 'Formulário enviado com sucesso! Direcionando para o WhatsApp...',
+            'en': 'Form sent successfully! Redirecting to WhatsApp...',
+            'es': '¡Formulario enviado con éxito! Redirigiendo a WhatsApp...',
+        },
 
         // ── Erro ──
         'erro-msg': {
@@ -549,15 +554,20 @@ const I18N = {
         },
 
         // ── Compartilhar ──
+        'compartilhar-text-imagem': {
+            'pt-BR': '*Ministério Acolher* | Um espaço de escuta, cuidado e respeito\n\n💜 O que oferecemos:\n\n✳️ Acolhimento emocional e espiritual especializado\n✳️ Atendimento 100% online, gratuito e sigiloso\n✳️ Profissionais qualificados e humanizados\n✳️ Direcionamento por perfil (masculino, feminino, abuso)\n✳️ Três sessões de acolhimento sem custo\n✳️ Ambiente seguro e sem julgamentos\n\nVocê não está sozinho(a). Compartilhe com quem precisa e ajude essa corrente de cuidado a crescer. 🙏🏽',
+            'en': '*Ministério Acolher* | A space for listening, care and respect\n\n💜 What we offer:\n\n✳️ Specialized emotional and spiritual support\n✳️ 100% online, free and confidential care\n✳️ Qualified and humanized professionals\n✳️ Profile-based referral (men, women, abuse)\n✳️ Three support sessions at no cost\n✳️ Safe and judgment-free environment\n\nYou are not alone. Share with those in need and help this chain of care grow. 🙏🏽',
+            'es': '*Ministerio Acolher* | Un espacio de escucha, cuidado y respeto\n\n💜 Lo que ofrecemos:\n\n✳️ Acogida emocional y espiritual especializada\n✳️ Atención 100% online, gratuita y confidencial\n✳️ Profesionales calificados y humanizados\n✳️ Derivación por perfil (hombres, mujeres, abuso)\n✳️ Tres sesiones de acogida sin costo\n✳️ Ambiente seguro y sin juicios\n\nNo estás solo(a). Comparte con quien lo necesite y ayuda a crecer esta cadena de cuidado. 🙏🏽',
+        },
         'compartilhar-title': {
             'pt-BR': 'Ministério Acolher | Apoio emocional e espiritual gratuito',
             'en': 'Ministério Acolher | Free emotional and spiritual support',
             'es': 'Ministerio Acolher | Apoyo emocional y espiritual gratuito',
         },
         'compartilhar-text': {
-            'pt-BR': '*Ministério Acolher* | Um espaço de escuta, cuidado e respeito — atendimento 100% gratuito e sigiloso para homens e mulheres que enfrentam violência doméstica, divórcio ou abuso sexual.\n\n💜 O que oferecemos:\n\n✳️ Acolhimento emocional e espiritual especializado\n✳️ Atendimento 100% online, gratuito e sigiloso\n✳️ Profissionais qualificados e humanizados\n✳️ Direcionamento por perfil (masculino, feminino, abuso)\n✳️ Três sessões de acolhimento sem custo\n✳️ Ambiente seguro e sem julgamentos\n\nVocê não está sozinho(a). Compartilhe com quem precisa e ajude essa corrente de cuidado a crescer. 🙏🏽\n\n*Escuta | Cuidado | Fé!*',
-            'en': '*Ministério Acolher* | A space for listening, care and respect — 100% free and confidential support for men and women facing domestic violence, divorce or sexual abuse.\n\n💜 What we offer:\n\n✳️ Specialized emotional and spiritual support\n✳️ 100% online, free and confidential care\n✳️ Qualified and humanized professionals\n✳️ Profile-based referral (men, women, abuse)\n✳️ Three support sessions at no cost\n✳️ Safe and judgment-free environment\n\nYou are not alone. Share with those in need and help this chain of care grow. 🙏🏽\n\n*Listening | Care | Faith!*',
-            'es': '*Ministerio Acolher* | Un espacio de escucha, cuidado y respeto — atención 100% gratuita y confidencial para hombres y mujeres que enfrentan violencia doméstica, divorcio o abuso sexual.\n\n💜 Lo que ofrecemos:\n\n✳️ Acogida emocional y espiritual especializada\n✳️ Atención 100% online, gratuita y confidencial\n✳️ Profesionales calificados y humanizados\n✳️ Derivación por perfil (hombres, mujeres, abuso)\n✳️ Tres sesiones de acogida sin costo\n✳️ Ambiente seguro y sin juicios\n\nNo estás solo(a). Comparte con quien lo necesite y ayuda a crecer esta cadena de cuidado. 🙏🏽\n\n*Escucha | Cuidado | Fe!*',
+            'pt-BR': '*Ministério Acolher* 💜 | Escuta, cuidado e respeito\n🔹 Acolhimento emocional e espiritual\n🔹 100% online, gratuito e sigiloso\n🔹 Profissionais qualificados\n🔹 Atendimento por perfil\n🔹 Três sessões gratuitas\n🔹 Ambiente seguro\n🙏 Compartilhe essa corrente!',
+            'en': '*Ministério Acolher* 💜 | Listening, care and respect\n🔹 Emotional and spiritual support\n🔹 100% online, free and confidential\n🔹 Qualified professionals\n🔹 Profile-based referral\n🔹 Three free sessions\n🔹 Safe environment\n🙏 Share this chain of care!',
+            'es': '*Ministerio Acolher* 💜 | Escucha, cuidado y respeto\n🔹 Acogida emocional y espiritual\n🔹 100% online, gratuito y confidencial\n🔹 Profesionales calificados\n🔹 Atención por perfil\n🔹 Tres sesiones gratuitas\n🔹 Ambiente seguro\n🙏 ¡Comparte esta cadena de cuidado!',
         },
         'compartilhar-copiado': {
             'pt-BR': '✅ Link copiado!',
@@ -576,6 +586,87 @@ const I18N = {
         'apoio-sim': { 'pt-BR': 'Sim (família, amigos, igreja...)', 'en': 'Yes (family, friends, church...)', 'es': 'Sí (familia, amigos, iglesia...)' },
         'apoio-parcial': { 'pt-BR': 'Parcialmente', 'en': 'Partially', 'es': 'Parcialmente' },
         'apoio-nao': { 'pt-BR': 'Não tenho rede de apoio', 'en': 'I don\'t have a support network', 'es': 'No tengo red de apoyo' },
+
+        // ── Modal Compartilhar ──
+        'modal-compartilhar-titulo': {
+            'pt-BR': 'Compartilhe o Acolher 💜',
+            'en': 'Share Acolher 💜',
+            'es': 'Comparte Acolher 💜',
+        },
+        'modal-compartilhar-subtitulo': {
+            'pt-BR': 'Conhece alguém que precisa de escuta, cuidado e respeito?<br>Ajude essa corrente de bem a crescer.',
+            'en': 'Do you know someone who needs listening, care and respect?<br>Help this chain of good grow.',
+            'es': '¿Conoces a alguien que necesita escucha, cuidado y respeto?<br>Ayuda a que esta cadena de bien crezca.',
+        },
+
+        // Itens da lista de recursos
+        'modal-recurso-1': {
+            'pt-BR': '💜 <b>Acolhimento emocional e espiritual</b>',
+            'en': '💜 <b>Emotional and spiritual</b> support',
+            'es': '💜 <b>Acogida emocional y espiritual</b>',
+        },
+        'modal-recurso-2': {
+            'pt-BR': '🔹 <b>100% online, gratuito e sigiloso</b>',
+            'en': '🔹 <b>100% online, free and confidential</b>',
+            'es': '🔹 <b>100% online, gratuito y confidencial</b>',
+        },
+        'modal-recurso-3': {
+            'pt-BR': '🔹 <b>Profissionais qualificados</b>',
+            'en': '🔹 <b>Qualified professionals</b>',
+            'es': '🔹 <b>Profesionales calificados</b>',
+        },
+        'modal-recurso-4': {
+            'pt-BR': '🔹 <b>Atendimento por perfil</b> (masculino, feminino, abuso)',
+            'en': '🔹 <b>Profile-based referral</b> (men, women, abuse)',
+            'es': '🔹 <b>Atención por perfil</b> (hombres, mujeres, abuso)',
+        },
+        'modal-recurso-5': {
+            'pt-BR': '🔹 <b>Três sessões gratuitas</b>',
+            'en': '🔹 <b>Three free sessions</b>',
+            'es': '🔹 <b>Tres sesiones gratuitas</b>',
+        },
+        'modal-recurso-6': {
+            'pt-BR': '🔹 <b>Ambiente seguro</b> 🙏🏽',
+            'en': '🔹 <b>Safe environment</b> 🙏🏽',
+            'es': '🔹 <b>Ambiente seguro</b> 🙏🏽',
+        },
+        'modal-recurso-footer': {
+            'pt-BR': '✨ <i>Compartilhe essa corrente de cuidado!</i>',
+            'en': '✨ <i>Share this chain of care!</i>',
+            'es': '✨ <i>¡Comparte esta cadena de cuidado!</i>',
+        },
+
+        // Botões do modal
+        'modal-btn-whatsapp': {
+            'pt-BR': 'Compartilhar no WhatsApp',
+            'en': 'Share on WhatsApp',
+            'es': 'Compartir en WhatsApp',
+        },
+        'modal-btn-copiar': {
+            'pt-BR': 'Copiar texto',
+            'en': 'Copy text',
+            'es': 'Copiar texto',
+        },
+        'modal-btn-copiado': {
+            'pt-BR': '✅ Copiado!',
+            'en': '✅ Copied!',
+            'es': '✅ ¡Copiado!',
+        },
+        'modal-btn-imagem': {
+            'pt-BR': 'Compartilhar como imagem',
+            'en': 'Share as image',
+            'es': 'Compartir como imagen',
+        },
+        'modal-btn-outros': {
+            'pt-BR': 'Outras opções de compartilhamento',
+            'en': 'Other sharing options',
+            'es': 'Otras opciones de compartir',
+        },
+        'footer-btn-compartilhar-mobile': {
+            'pt-BR': 'Compartilhar',
+            'en': 'Share',
+            'es': 'Compartir',
+        },
 
         // ── Select horário ──
         'horario-manha': { 'pt-BR': 'Manhã', 'en': 'Morning', 'es': 'Mañana' },

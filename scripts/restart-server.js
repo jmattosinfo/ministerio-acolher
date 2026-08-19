@@ -1,52 +1,56 @@
 // scripts/restart-server.js
+// Reinicia o servidor na VPS via PM2 (acolher.life).
+// Uso: node scripts/restart-server.js
+//
+// Configuração via variáveis de ambiente (VPS_*). SEM credenciais hardcoded.
+//   VPS_HOST          (padrão: 187.127.39.48)
+//   VPS_USER          (padrão: deploy)
+//   VPS_PRIVATE_KEY   (padrão: ~/.ssh/id_ed25519)
+//   VPS_PASS          (opcional — fallback por senha, caso não use chave)
+//   VPS_DIR           (padrão: /home/acolher/htdocs/acolher.life)
+
+require('dotenv').config();
 const { Client } = require('ssh2');
+const fs = require('fs');
+const path = require('path');
+
+const HOST = process.env.VPS_HOST || '187.127.39.48';
+const USER = process.env.VPS_USER || 'deploy';
+const PASS = process.env.VPS_PASS;
+const KEY = process.env.VPS_PRIVATE_KEY || path.join(process.env.HOME || '.', '.ssh', 'id_ed25519');
+const DIR = process.env.VPS_DIR || '/home/acolher/htdocs/acolher.life';
+
 const c = new Client();
 
 c.on('ready', () => {
-    console.log('✅ Conectado');
-    
-    // Verifica se PM2 está disponível
-    c.exec('which pm2 || echo "PM2_NOT_FOUND"', (err, stream) => {
+    console.log(`✅ Conectado como ${USER}@${HOST}`);
+    c.exec(`cd ${DIR} && pm2 restart acolher.life 2>&1; echo "---STATUS---"; pm2 status 2>&1`, (err, stream) => {
         let out = '';
-        stream.on('data', d => out += d.toString());
-        stream.stderr.on('data', d => out += d.toString());
+        stream.on('data', d => out += d);
+        stream.stderr.on('data', d => out += d);
         stream.on('close', () => {
-            const hasPm2 = !out.includes('PM2_NOT_FOUND');
-            console.log(`PM2: ${hasPm2 ? '✅' : '❌'}`);
-            
-            if (hasPm2) {
-                // Inicia com PM2
-                c.exec('cd /home/acolher/htdocs/acolher.life && pm2 start server.js --name acolher.life 2>&1; echo "---STATUS---"; pm2 status 2>&1', (err, stream) => {
-                    let out = '';
-                    stream.on('data', d => out += d.toString());
-                    stream.stderr.on('data', d => out += d.toString());
-                    stream.on('close', () => {
-                        console.log('Resultado:', out);
-                        console.log('✅ Comando executado. Verifique https://acolher.life/admin/');
-                        c.end();
-                    });
-                });
-            } else {
-                // Inicia sem PM2
-                c.exec('cd /home/acolher/htdocs/acolher.life && nohup node server.js > /tmp/acolher.log 2>&1 & echo $!', (err, stream) => {
-                    let out = '';
-                    stream.on('data', d => out += d.toString());
-                    stream.stderr.on('data', d => out += d.toString());
-                    stream.on('close', () => {
-                        console.log('PID:', out);
-                        console.log('✅ Servidor iniciado. Verifique https://acolher.life/admin/');
-                        c.end();
-                    });
-                });
-            }
+            console.log(out);
+            console.log('✅ Servidor reiniciado. Verifique https://acolher.life/admin/');
+            c.end();
+            process.exit(0);
         });
     });
 });
 
-c.on('error', e => {
+c.on('error', (e) => {
     console.error('❌ Erro de conexão:', e.message);
     process.exit(1);
 });
 
-console.log('🔌 Conectando...');
-c.connect({ host:'187.127.39.48', username:'root', password:'Julio-Kelly090911', readyTimeout:15000 });
+const opts = { host: HOST, port: 22, username: USER, readyTimeout: 15000 };
+if (PASS) {
+    opts.password = PASS;
+} else if (fs.existsSync(KEY)) {
+    opts.privateKey = fs.readFileSync(KEY);
+} else {
+    console.error(`❌ Nenhuma credencial encontrada: defina VPS_PASS ou a chave em ${KEY}`);
+    process.exit(1);
+}
+
+console.log(`🔌 Conectando a ${USER}@${HOST}...`);
+c.connect(opts);

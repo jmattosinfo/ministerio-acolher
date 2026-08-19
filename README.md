@@ -198,8 +198,9 @@ ministerio-acolher/
 ## ✅ Pré-requisitos
 
 - **Node.js** versão 18 ou superior
-- **MySQL** 8.0+ (ou MariaDB 10.5+)
+- **MySQL** 8.0+ (ou MariaDB 10.5+) — pode ser via **Docker** (`mysql:8`) no ambiente local/WSL
 - **npm** (gerenciador de pacotes do Node.js)
+- **Docker Desktop** (opcional, recomendado) — para subir o MySQL local sem instalar nativo
 - Acesso à internet para consumo de APIs externas (Nominatim, Leaflet tiles)
 
 ---
@@ -221,7 +222,20 @@ npm install
 
 ### 3. Configure o banco de dados MySQL
 
-Crie um banco de dados MySQL:
+#### Opção A — via Docker (recomendada em ambiente local/WSL)
+
+```bash
+docker run -d --name acolher-db -p 3307:3306 \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=ministerio_acolher \
+  -e MYSQL_USER=acolher \
+  -e MYSQL_PASSWORD=acolher123 \
+  mysql:8.4.0
+```
+
+> A porta host **3307** é usada porque a **3306** costuma estar ocupada pelo MySQL nativo do Windows (ou outro serviço). Nesse caso, defina `DB_PORT=3307` no `.env`.
+
+#### Opção B — MySQL/MariaDB nativo
 
 ```sql
 CREATE DATABASE ministerio_acolher CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -294,11 +308,13 @@ PORT=3000
 NODE_ENV=development
 
 # Banco de Dados
+# Se usar o container Docker local (acolher-db, porta host 3307):
 DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=minha-senha-mysql
+DB_PORT=3307
+DB_USER=acolher
+DB_PASSWORD=acolher123
 DB_NAME=ministerio_acolher
+# (Para MySQL/MariaDB nativo na 3306: DB_PORT=3306, usuário/senha do seu servidor)
 
 # Sessão
 SESSION_SECRET=uma-chave-secreta-muito-forte-aqui
@@ -350,7 +366,7 @@ ADMIN_PASSWORD_HASH=$2a$10$... (hash gerado pelo script)
    - Seleciona o profissional responsável (round-robin para perfil feminino)
    - Dispara e-mail de notificação ao profissional
    - Retorna os dados de contato do profissional
-7. O usuário é redirecionado a uma tela de sucesso com botão para iniciar conversa no WhatsApp com o profissional designado
+7. O usuário é **redirecionado automaticamente** para a conversa no WhatsApp com o profissional designado (link `wa.me` com mensagem pré-preenchida no idioma do site). Caso o WhatsApp não responda, uma tela de sucesso com o botão de contato é exibida como fallback.
 
 ### Painel Administrativo
 

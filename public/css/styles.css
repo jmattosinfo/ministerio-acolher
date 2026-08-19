@@ -270,6 +270,67 @@ input[type="range"]::-webkit-slider-thumb {
     }
 }
 
+/* ── Modal de Compartilhamento ── */
+.share-overlay {
+backdrop-filter: blur(6px);
+-webkit-backdrop-filter: blur(6px);
+}
+
+.share-card {
+box-shadow: 0 30px 80px rgba(92, 20, 20, 0.35);
+}
+
+/* Lista de recursos */
+.share-text-list {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+
+.share-text-list li {
+padding: 0.375rem 0;
+border-bottom: 1px solid rgba(232, 224, 212, 0.4);
+}
+
+.share-text-list li:last-child {
+border-bottom: none;
+padding-bottom: 0;
+}
+
+/* Scroll suave no modal em mobile */
+#modal-compartilhar-overlay .share-card {
+scrollbar-width: thin;
+scrollbar-color: #E8E0D4 transparent;
+}
+
+#modal-compartilhar-overlay .share-card::-webkit-scrollbar {
+width: 5px;
+}
+
+#modal-compartilhar-overlay .share-card::-webkit-scrollbar-track {
+background: transparent;
+}
+
+#modal-compartilhar-overlay .share-card::-webkit-scrollbar-thumb {
+background: #E8E0D4;
+border-radius: 8px;
+}
+
+/* Botão copiar: transição suave de feedback */
+#btn-share-copy {
+transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Responsivo: modal ocupa mais largura em telas muito pequenas */
+@media (max-width: 374px) {
+.share-card {
+    border-radius: 1.25rem;
+}
+#modal-compartilhar-overlay {
+    padding: 0.5rem;
+}
+}
+
 @media (prefers-reduced-motion: reduce) {
     .reveal {
         opacity: 1;
@@ -285,6 +346,13 @@ input[type="range"]::-webkit-slider-thumb {
     }
     .modal-overlay,
     .modal-card {
+        transition: none;
+    }
+    .share-overlay,
+    .share-card {
+        transition: none;
+    }
+    #btn-share-copy {
         transition: none;
     }
     html {

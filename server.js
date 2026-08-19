@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // carrega variáveis de ambiente .env
 const express = require('express');
 const path = require('path');
 const nodemailer = require('nodemailer');

@@ -15,3 +15,7 @@ Thumbs.db
 
 public/assets/images/*.jpg
 public/assets/images/*.png
+
+# DOCUMENTAÇÃO LOCAL / PESSOAL
+# Workflow pessoal de contexto diário (não commitar)
+workflow.md

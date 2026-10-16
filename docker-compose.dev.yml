@@ -1,1 +1,60 @@
+name: acolher-dev
 
+services:
+  db:
+    image: mysql:8.4.0
+    container_name: acolher-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-ministerio_acolher}
+      MYSQL_USER: ${DB_USER:-acolher}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-acolher123}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      TZ: America/Sao_Paulo
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    networks:
+      - acolher-dev-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" -D \"$$MYSQL_DATABASE\" -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  acolher-app:
+    image: node:22-alpine
+    container_name: acolher-life-dev
+    working_dir: /app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 3306
+      TZ: America/Sao_Paulo
+    volumes:
+      - .:/app
+      - acolher_dev_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - acolher-dev-net
+
+volumes:
+  mysql_dev_data:
+    name: acolher_mysql_dev_data
+  acolher_dev_node_modules:
+    name: acolher_dev_node_modules
+
+networks:
+  acolher-dev-net:
+    driver: bridge

@@ -720,6 +720,50 @@
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════
+     MODAL DE AVISO — Direcionamento à acolhedora Shirley
+     (ela não aparece listada na página pública, mas é da equipe oficial)
+══════════════════════════════════════════════════ -->
+<div id="modal-aviso-shirley-overlay"
+     class="fixed inset-0 z-[150] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out"
+     role="dialog" aria-modal="true" aria-labelledby="modal-aviso-shirley-titulo" aria-hidden="true">
+
+    <!-- Backdrop escuro translúcido -->
+    <div class="absolute inset-0 bg-brand-deep/70 backdrop-blur-sm"></div>
+
+    <!-- Card do aviso -->
+    <div id="modal-aviso-shirley-card"
+         class="relative bg-brand-light rounded-3xl shadow-2xl w-full max-w-md transform scale-95 transition-transform duration-300 ease-in-out border border-brand-muted/60">
+
+        <!-- Botão fechar -->
+        <button id="modal-aviso-shirley-fechar" type="button"
+                class="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-brand-cream/80 hover:bg-brand-cream text-brand-soft hover:text-brand-dark transition-colors text-lg"
+                data-i18n-aria-label="shirley-aviso-fechar" aria-label="Fechar aviso">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="p-6 md:p-8">
+
+            <!-- Aviso (fundo âmbar: uso permitido apenas em contexto de aviso) -->
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-5">
+                <p id="modal-aviso-shirley-titulo" class="font-serif text-lg font-bold text-amber-900 leading-snug mb-2" data-i18n="shirley-aviso-titulo">
+                    Acolhedora Oficial da Equipe
+                </p>
+                <p class="text-sm text-amber-900/90 leading-relaxed" data-i18n="shirley-aviso-texto">
+                    A acolhedora Shirley faz parte da equipe oficial do Ministério Acolher. Embora sua foto e perfil não estejam temporariamente listados em nossa página inicial, seu acolhimento ocorrerá com todo sigilo, segurança e acolhimento.
+                </p>
+            </div>
+
+            <!-- Botão Entendi -->
+            <button id="modal-aviso-shirley-entendi" type="button"
+                    class="mt-6 w-full bg-brand-dark text-white font-serif font-semibold py-3.5 px-4 rounded-xl hover:bg-brand-deep transition text-sm shadow-md"
+                    data-i18n="shirley-aviso-btn">Entendi</button>
+        </div>
+    </div>
+</div>
+
 <script src="/js/i18n.js"></script>
 <script src="/js/main.js"></script>
 </body>

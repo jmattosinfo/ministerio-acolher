@@ -355,18 +355,14 @@ document.getElementById('acolherForm').addEventListener('submit', async function
                 ? "Hola, llegué a través del sitio web Acolher y fui dirigido(a) a usted. Me gustaría recibir acogida. ¿Podría ayudarme?"
                 : "Olá, passei pelo site Acolher, e fui direcionado(a) para você. Gostaria de receber acolhimento. Poderia me ajudar?";
             const mensagemWhatsApp = encodeURIComponent(mensagemPrevia);
-            const waLink = montarLinkWhatsApp(prof.whatsapp, mensagemWhatsApp);
 
-            // Estado leve de espera enquanto a pré-checagem do WhatsApp roda
-            mostrarRedirecionando(lang);
-
-            // Pré-checa se o wa.me responde: se sim, redireciona automaticamente na
-            // mesma aba; se falhar/ficar sem resposta, cai no fallback (tela com botão).
-            const disponivel = await verificarDisponibilidadeWa(waLink);
-            if (disponivel) {
-                window.location.href = waLink;
+            // A acolhedora Shirley não consta na lista pública do site (por
+            // questões jurídicas). Antes de abrir o WhatsApp dela, exibimos um
+            // aviso informativo; ao fechar, o redirecionamento segue normalmente.
+            if (prof.nome === 'Shirley') {
+                abrirAvisoShirley(() => executarRedirecionamento(prof, mensagemWhatsApp, lang));
             } else {
-                mostrarSucessoFallback(prof, mensagemWhatsApp, lang);
+                await executarRedirecionamento(prof, mensagemWhatsApp, lang);
             }
         } else {
             throw new Error();
@@ -441,6 +437,25 @@ function mostrarSucessoFallback(prof, mensagemWhatsApp, lang) {
     `;
     sucessoDiv.classList.remove('hidden');
     sucessoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Executa o redirecionamento para o WhatsApp do profissional já escolhido no
+// servidor: mostra o estado de espera, pré-checa o wa.me e, dependendo do
+// resultado, redireciona na mesma aba ou cai no fallback (tela com botão).
+async function executarRedirecionamento(prof, mensagemWhatsApp, lang) {
+    const waLink = montarLinkWhatsApp(prof.whatsapp, mensagemWhatsApp);
+
+    // Estado leve de espera enquanto a pré-checagem do WhatsApp roda
+    mostrarRedirecionando(lang);
+
+    // Pré-checa se o wa.me responde: se sim, redireciona automaticamente na
+    // mesma aba; se falhar/ficar sem resposta, cai no fallback (tela com botão).
+    const disponivel = await verificarDisponibilidadeWa(waLink);
+    if (disponivel) {
+        window.location.href = waLink;
+    } else {
+        mostrarSucessoFallback(prof, mensagemWhatsApp, lang);
+    }
 }
 
 // ════════════════════════════════════════════════════════
@@ -804,6 +819,99 @@ document.addEventListener('DOMContentLoaded', function () {
             renderizarListaPreview();
         }
     };
+});
+
+// ════════════════════════════════════════════════════════
+// ── MODAL DE AVISO — Direcionamento à Shirley ──────────
+// ════════════════════════════════════════════════════════
+// Exibido quando o servidor direciona o acolhimento à Shirley (round-robin de
+// mulheres). Ela não aparece listada na página pública por questões jurídicas,
+// então informamos a pessoa antes de abrir o WhatsApp — ao fechar, seguimos o
+// redirecionamento normal (com fallback caso o wa.me não responda).
+
+let acaoAposAvisoShirley = null;
+
+// Abre o aviso e guarda a ação a executar quando o usuário fechar o modal
+function abrirAvisoShirley(aoFechar) {
+    const avisoOverlay = document.getElementById('modal-aviso-shirley-overlay');
+    if (!avisoOverlay) return;
+
+    acaoAposAvisoShirley = aoFechar || null;
+
+    avisoOverlay.classList.remove('opacity-0', 'pointer-events-none');
+    avisoOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    // Animação scale (mesmo padrão do modal de compartilhamento)
+    const avisoCard = document.getElementById('modal-aviso-shirley-card');
+    requestAnimationFrame(() => {
+        avisoCard.classList.remove('scale-95');
+        avisoCard.classList.add('scale-100');
+    });
+
+    // Foco no botão "Entendi" para navegação por teclado
+    setTimeout(() => {
+        const btnEntendi = document.getElementById('modal-aviso-shirley-entendi');
+        if (btnEntendi) btnEntendi.focus();
+    }, 100);
+}
+
+// Fecha o aviso e dispara o redirecionamento que estava aguardando
+function fecharAvisoShirley() {
+    const avisoOverlay = document.getElementById('modal-aviso-shirley-overlay');
+    if (!avisoOverlay || avisoOverlay.getAttribute('aria-hidden') === 'true') return;
+
+    const avisoCard = document.getElementById('modal-aviso-shirley-card');
+    avisoCard.classList.remove('scale-100');
+    avisoCard.classList.add('scale-95');
+
+    setTimeout(() => {
+        avisoOverlay.classList.add('opacity-0', 'pointer-events-none');
+        avisoOverlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+
+        // Executa a ação pendente (redirecionamento ao WhatsApp da Shirley)
+        const acao = acaoAposAvisoShirley;
+        acaoAposAvisoShirley = null;
+        if (acao) acao();
+    }, 200);
+}
+
+// Vincula eventos do modal de aviso
+document.addEventListener('DOMContentLoaded', function () {
+    const avisoOverlay = document.getElementById('modal-aviso-shirley-overlay');
+    if (!avisoOverlay) return;
+
+    // "Entendi" e botão fechar (X)
+    document.getElementById('modal-aviso-shirley-entendi').addEventListener('click', fecharAvisoShirley);
+    document.getElementById('modal-aviso-shirley-fechar').addEventListener('click', fecharAvisoShirley);
+
+    // Clique no backdrop
+    avisoOverlay.addEventListener('click', function (e) {
+        if (e.target === avisoOverlay) fecharAvisoShirley();
+    });
+
+    // ESC
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && avisoOverlay.getAttribute('aria-hidden') === 'false') {
+            fecharAvisoShirley();
+        }
+    });
+
+    // Trap focus dentro do modal
+    avisoOverlay.addEventListener('keydown', function (e) {
+        if (avisoOverlay.getAttribute('aria-hidden') !== 'false') return;
+        const focaveis = avisoOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const primeiro = focaveis[0];
+        const ultimo = focaveis[focaveis.length - 1];
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === primeiro) { e.preventDefault(); ultimo.focus(); }
+            } else {
+                if (document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
+            }
+        }
+    });
 });
 
 // ── Reveal ao rolar ──────────────────────────────────

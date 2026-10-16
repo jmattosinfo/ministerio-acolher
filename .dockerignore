@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.gitignore
+.vscode
+plans
+*.md
+Dockerfile
+docker-compose*.yml
+.env
+.env.*
+!.env.example
+ecosystem.config.*
+coverage
+*.log

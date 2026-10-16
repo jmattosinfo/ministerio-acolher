@@ -8,6 +8,7 @@ const { enriquecerLocalizacao, estadoParaSigla } = require('./utils/geocode');
 const locationRoutes = require('./routes/location');
 
 const app = express();
+app.set('trust proxy', 1); // necessário se estiver atrás de um proxy (ex: Heroku, Nginx)
 const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }));

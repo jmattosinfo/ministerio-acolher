@@ -484,6 +484,34 @@ const I18N = {
             'es': '¡Formulario enviado con éxito! Redirigiendo a WhatsApp...',
         },
 
+        // ── Aviso Shirley (acolhedora não listada na página pública) ──
+        // Exibido quando o round-robin de mulheres direciona à Shirley
+        'shirley-aviso-titulo': {
+            'pt-BR': 'Acolhedora Oficial da Equipe',
+            'en': 'Official Team Caregiver',
+            'es': 'Acolhedora Oficial del Equipo',
+        },
+        'shirley-aviso-texto': {
+            'pt-BR': 'A acolhedora Shirley faz parte da equipe oficial do Ministério Acolher. Embora sua foto e perfil não estejam temporariamente listados em nossa página inicial, seu acolhimento ocorrerá com todo sigilo, segurança e acolhimento.',
+            'en': 'The caregiver Shirley is part of the official Ministério Acolher team. Although her photo and profile are temporarily not listed on our home page, your support will be provided with complete confidentiality, safety and care.',
+            'es': 'La acogedora Shirley forma parte del equipo oficial del Ministerio Acolher. Aunque su foto y perfil no estén temporalmente listados en nuestra página de inicio, su acogida se realizará con total confidencialidad, seguridad y cuidado.',
+        },
+        'shirley-aviso-btn': {
+            'pt-BR': 'Entendi',
+            'en': 'I understand',
+            'es': 'Entendido',
+        },
+        'shirley-aviso-fechar': {
+            'pt-BR': 'Fechar aviso',
+            'en': 'Close notice',
+            'es': 'Cerrar aviso',
+        },
+        'shirley-aviso-dialogo': {
+            'pt-BR': 'Aviso sobre o direcionamento do acolhimento',
+            'en': 'Notice about your caregiver assignment',
+            'es': 'Aviso sobre la asignación de su acogida',
+        },
+
         // ── Erro ──
         'erro-msg': {
             'pt-BR': 'Ocorreu um erro ao enviar. Por favor, tente novamente.',

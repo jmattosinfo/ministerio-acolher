@@ -1,0 +1,47 @@
+services:
+  db:
+    image: mysql:8.4.0
+    container_name: acolher-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: America/Sao_Paulo
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - acolher-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  acolher-app:
+    build: .
+    container_name: acolher-life
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # Monta o .env original direto para o dotenv do Node ler sem interpolação do Docker
+      - ./.env:/app/.env:ro
+    environment:
+      # O dotenv não sobrescreve variáveis já definidas no ambiente do container:
+      DB_HOST: db
+      DB_PORT: 3306
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - acolher-net
+
+volumes:
+  mysql_data:
+
+networks:
+  acolher-net:
+    driver: bridge

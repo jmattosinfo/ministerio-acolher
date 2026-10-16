@@ -23,7 +23,7 @@ O **Ministério Acolher** é uma **plataforma web de acolhimento emocional e esp
 
 ## 2. Stack Tecnológica
 
-### Backend (Node.js ≥ 18)
+### Backend (Node.js 22)
 | Dependência | Versão | Papel |
 |---|---|---|
 | `express` | ^5.2.1 | Framework web / servidor HTTP |
@@ -33,7 +33,7 @@ O **Ministério Acolher** é uma **plataforma web de acolhimento emocional e esp
 | `nodemailer` | ^9.0.3 | Envio de e-mail via SMTP **Brevo** |
 | `dotenv` | ^17.4.2 | Variáveis de ambiente |
 | `country-state-city` | ^3.2.1 | Base local de países/estados/cidades |
-| `ssh2` | ^1.17.0 | Automação de deploy na VPS (scripts) |
+| `ssh2` (dev) | ^1.17.0 | Automação de deploy (scripts legados, aposentados) |
 | `nodemon` (dev) | ^3.1.14 | Reload automático |
 
 - Projeto em **CommonJS** (`"type": "commonjs"`), sem build/bundler.
@@ -52,9 +52,12 @@ O **Ministério Acolher** é uma **plataforma web de acolhimento emocional e esp
 - `country-state-city` (dados locais) para selects de país/estado/cidade.
 - **Nominatim (OpenStreetMap)** para enriquecer cidade → `Cidade – UF` (com cache em memória).
 
-### Infra
-- **MySQL 8.0+ / MariaDB 10.5+** (tabela `cadastros`).
-- **PM2** (processo nomeado `acolher.life`) na VPS.
+### Infra (Conteinerizada)
+- **Docker + Docker Compose** — orquestração de app e banco em produção e desenvolvimento.
+- **MySQL 8.4** (imagem `mysql:8.4.0`), tabela única `cadastros`, com volume persistente nomeado **`acolher_mysql_data`**.
+- Aplicação empacotada em imagem própria ([`Dockerfile`](Dockerfile), base `node:22-alpine`), usuário não-root e `HEALTHCHECK` no endpoint `GET /healthz`.
+- **GitHub Actions** — pipeline de CI/CD ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) que valida (`npm ci` + `node --check`) e publica na VPS via SSH + Docker Compose.
+- **PM2 aposentado** — o gerenciamento de processo e o deploy manual por SFTP foram substituídos pelos containers.
 
 ---
 
@@ -63,7 +66,7 @@ O **Ministério Acolher** é uma **plataforma web de acolhimento emocional e esp
 **Monólito leve em Node.js/Express**: serve páginas estáticas de [`public/`](public) e expõe uma API JSON. Lógica de frontend isolada em `public/js`.
 
 ```
-Cliente → acolher.life → servidor web/TLS (proxy) → porta 3000 (app Node via PM2) → MySQL + SMTP Brevo + Nominatim + CDNs
+Cliente → acolher.life → proxy/TLS (CloudPanel/Nginx) → 127.0.0.1:3000 (container acolher-life) → container acolher-db (MySQL) + SMTP Brevo + Nominatim + CDNs
 ```
 
 Camadas: `middleware → routes → views` (backend) e `public/js` (frontend). **Regra de estrutura:** novos arquivos devem seguir o layout existente; não criar pastas/estruturas paralelas.
@@ -75,7 +78,16 @@ ministerio-acolher/
 ├── server.js                       # Servidor Express principal
 ├── package.json / package-lock.json
 ├── .env                            # Variáveis de ambiente (NÃO versionado)
+├── .env.example                    # Modelo das variáveis de ambiente (versionado)
+├── .dockerignore                   # Exclusões do contexto de build da imagem
 ├── .gitignore
+│
+├── Dockerfile                      # Imagem de produção (node:22-alpine)
+├── docker-compose.yml              # Stack de produção (acolher-app + acolher-db)
+├── docker-compose.dev.yml          # Stack de desenvolvimento (hot-reload via nodemon)
+│
+├── .github/workflows/
+│   └── deploy.yml                  # CI/CD: validação (CI) + deploy automático na VPS (CD)
 │
 ├── middleware/
 │   └── auth.js                     # requireAuth: protege rotas admin por sessão
@@ -103,8 +115,8 @@ ministerio-acolher/
 │
 └── scripts/
     ├── gerar-hash-senha.js         # Gera hash bcrypt p/ ADMIN_PASSWORD_HASH
-    ├── deploy-vps.js               # Deploy SFTP + pm2 restart (via VPS_*)
-    ├── restart-server.js           # pm2 restart remoto (via VPS_*)
+    ├── deploy-vps.js               # (LEGADO) Deploy SFTP + pm2 — aposentado
+    ├── restart-server.js           # (LEGADO) pm2 restart remoto — aposentado
     └── deletar-ultimo-registro.js  # Remove o último registro (uso de teste)
 ```
 
@@ -282,25 +294,44 @@ Homens: azul (`bg-blue-50`/`text-blue-700`) · Mulheres: rosa (`bg-rose-50`/`tex
 
 ## 13. Variáveis de Ambiente (`.env`, não versionado)
 
+O modelo versionado é o [`.env.example`](.env.example) (gerar o `.env` com `cp .env.example .env`).
+
 | Variável | Obrigatória | Padrão | Descrição |
 |---|---|---|---|
 | `PORT` | Não | `3000` | Porta do servidor |
-| `NODE_ENV` | Produção | — | `production` ativa cookie `secure` (exige HTTPS) |
-| `DB_HOST` | Não | `127.0.0.1` | Host MySQL |
-| `DB_PORT` | Não | `3306` | Porta MySQL (local WSL costuma usar `3307` via Docker) |
-| `DB_USER` / `DB_PASSWORD` / `DB_NAME` | **Sim** | — | Credenciais do banco |
+| `NODE_ENV` | Produção | `development` | `production` ativa cookie `secure` (exige HTTPS); forçado pelo `docker-compose.yml` |
+| `DB_HOST` | Não | `127.0.0.1` | Host MySQL (no Compose é sobrescrito para `db`) |
+| `DB_PORT` | Não | `3307` | Porta MySQL (manual: 3307 via Docker; no Compose é sobrescrita para `3306`) |
+| `DB_USER` / `DB_PASSWORD` / `DB_NAME` | **Sim** | `acolher` / `acolher123` / `ministerio_acolher` | Credenciais do banco |
+| `DB_ROOT_PASSWORD` | **Sim** (Compose) | `root` | Senha root do MySQL (container `acolher-db`) |
 | `SESSION_SECRET` | **Sim** | — | Chave das sessões |
 | `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_USER` / `EMAIL_PASS` | **Sim** (porta não) | `587` | SMTP Brevo |
 | `EMAIL_FROM` | Não | = `EMAIL_USER` | Remetente exibido |
 | `ADMIN_USERNAME` | **Sim** | — | Usuário do admin |
-| `ADMIN_PASSWORD_HASH` | **Sim** | — | Hash bcrypt (gerar via script) |
-| `VPS_HOST` / `VPS_USER` / `VPS_PRIVATE_KEY` / `VPS_PASS` / `VPS_DIR` | Não | ver [`DEPLOY.md`](DEPLOY.md) | Usadas pelos scripts de deploy |
+| `ADMIN_PASSWORD_HASH` | **Sim** | — | Hash bcrypt (gerar via script), **entre aspas simples** |
 
 **Gerar hash:** `node scripts/gerar-hash-senha.js "sua-senha"` → copiar para `ADMIN_PASSWORD_HASH`.
+
+> ⚠️ **Regra do `ADMIN_PASSWORD_HASH` e de senhas com caracteres especiais:** o valor **deve** ser escrito **entre aspas simples** no `.env` (`ADMIN_PASSWORD_HASH='$2b$10$...'`). Sem as aspas, o Docker Compose interpreta o `$` como **interpolação de variável** e corrompe o hash (ou a senha), impedindo o login no painel administrativo. A mesma regra vale para senhas de banco/SMTP que contenham `$`.
 
 ---
 
 ## 14. Como Rodar Localmente
+
+### Opção A — Docker Compose (recomendada)
+
+```bash
+cp .env.example .env                          # 1. gera o .env a partir do modelo
+node scripts/gerar-hash-senha.js "sua-senha"  # 2. cole o hash em ADMIN_PASSWORD_HASH (entre aspas simples)
+docker compose -f docker-compose.dev.yml up   # 3. sobe app (porta 3000) + MySQL (porta 3307)
+```
+
+- Container `acolher-life-dev` (Node.js 22, hot-reload via nodemon) monta o código por bind mount.
+- Container `acolher-db-dev` (MySQL 8.4) publica a porta **3307** e usa o volume `acolher_mysql_dev_data`.
+- Encerrar: `docker compose -f docker-compose.dev.yml down` (**nunca** usar `-v`, que apaga o volume).
+- Dentro do Compose, `DB_HOST=db` e `DB_PORT=3306` são definidos automaticamente (rede interna).
+
+### Opção B — Execução manual
 
 ```bash
 npm install
@@ -324,13 +355,14 @@ npm start       # produção
 
 ## 15. Deploy e Operação (resumo — detalhes em [`DEPLOY.md`](DEPLOY.md))
 
-- **Sem CI/CD e sem build de assets.** Publicar = enviar arquivos + reiniciar PM2.
-- **Método recomendado:** `node scripts/deploy-vps.js` — envia `server.js`, `package.json`, `package-lock.json`, `middleware`, `routes`, `utils`, `views`, `public` por SFTP e executa `pm2 restart acolher.life`. **Não envia** `.env`, `.git`, `node_modules`, `.vscode`, `scripts`, `workflow.md`.
-- **Reinício:** `node scripts/restart-server.js` (ou `pm2 restart acolher.life` manualmente).
-- **Alternativa:** SFTP do VSCode (`.vscode/sftp.json`, `uploadOnSave`) — publica mudanças parciais, preferir o script.
-- **Produção:** VPS `187.127.39.48`, usuário `deploy`, diretório `/home/acolher/htdocs/acolher.life`, processo PM2 `acolher.life`.
-- **Auto-migração roda no boot** (`ALTER TABLE` sem lock) — para tabelas grandes, planejar janela de baixo tráfego.
-- **Backup do banco não automatizado** — pendência conhecida (recomendado `mysqldump` com retenção fora da VPS).
+- **CI/CD automatizado via GitHub Actions** ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)): dispara no push da `main`; job `validate` (CI: `npm ci` + `node --check`) e job `deploy` (CD: SSH na VPS + Docker Compose). **Sem build de assets.**
+- **Conteinerização:** produção com dois containers via [`docker-compose.yml`](docker-compose.yml) — `acolher-life` (imagem do [`Dockerfile`](Dockerfile), publicada em `127.0.0.1:3000`) e `acolher-db` (`mysql:8.4.0`, sem porta publicada).
+- **Volume persistente nomeado:** `acolher_mysql_data` (nome declarado explicitamente no Compose). **Nunca** executar `docker compose down -v`.
+- **Rotina de deploy:** backup preventivo do banco (`mysqldump | gzip` → `backups/db_pre_deploy_<timestamp>.sql.gz`, permissão `600`, retenção de 10 arquivos) → `git reset --hard origin/main` → `docker compose up -d --build` → smoke test `GET /healthz` → remoção do PM2 legado.
+- **Produção:** VPS `187.127.39.48`, diretório `/home/acolher/htdocs/acolher.life`; proxy CloudPanel/Nginx → `127.0.0.1:3000`.
+- **PM2 / SFTP / scripts `deploy-vps.js` e `restart-server.js`: aposentados.** As operações usam `docker compose`.
+- **Auto-migração roda no boot** (`ALTER TABLE` sem lock, com retry/fail-fast) — para tabelas grandes, planejar janela de baixo tráfego.
+- **Backup:** automatizado a cada deploy (gzip, retenção de 10); recomendada cópia diária **offsite** criptografada (pendência).
 
 ---
 
@@ -360,13 +392,13 @@ Preferir o que já existe. **Nova dependência** só se estritamente necessária
 
 ## 17. Estado Atual e Dívidas Técnicas Conhecidas
 
-Documentado em [`relatorio.md`](relatorio.md) (análise técnica) e na seção 12 do [`DEPLOY.md`](DEPLOY.md):
+Documentado em [`relatorio.md`](relatorio.md) (análise técnica), na seção 15 do [`DEPLOY.md`](DEPLOY.md) (Segurança) e em [`AUDITORIA-CONTEINERIZACAO.md`](AUDITORIA-CONTEINERIZACAO.md):
 
-- **Segurança — pendências:** rate limiting (`express-rate-limit`) em `/api/cadastro` e `/admin/login`; headers de segurança (`helmet`); validação de schema no backend (`zod`/`express-validator`); rotacionar credenciais que estiveram no histórico do Git (scripts já refatorados para usar `VPS_*`).
+- **Segurança — pendências:** rate limiting (`express-rate-limit`) em `/api/cadastro` e `/admin/login`; headers de segurança (`helmet`); validação de schema no backend (`zod`/`express-validator`); rotacionar credenciais que estiveram no histórico do Git (scripts de deploy legados, já aposentados); pinar imagens e GitHub Actions por digest/SHA.
 - **Testes:** só o placeholder no `package.json` (`npm test` retorna erro). Recomendado Jest + Supertest cobrindo `/api/cadastro`, round-robin, `utils/geocode.js` e `i18n.js`.
 - **Migrations:** inexistentes — schema gerenciado imperativamente em [`server.js`](server.js:41).
 - **Staging:** inexistente (produção recebe `main` diretamente).
-- **Itens a confirmar:** proxy/TLS (nginx/Apache/LiteSpeed?), MySQL na VPS, `ecosystem.config.js` do PM2, provedor de tiles do Leaflet, backup automatizado do banco.
+- **Itens a confirmar:** configuração exata do proxy/TLS (CloudPanel/Nginx), provedor de tiles do Leaflet e cópia de backup **offsite**.
 - **Pontos fortes:** arquitetura enxuta, foco em UX/empatia, dashboard resiliente (try/catch por métrica), privacidade (codinome + termos), i18n leve sem dependências pesadas.
 
 ---
@@ -387,7 +419,8 @@ Documentado em [`relatorio.md`](relatorio.md) (análise técnica) e na seção 1
 | Formulário e redirecionamento | [`public/js/main.js`](public/js/main.js) | 268, 445, 832 |
 | Landing page | [`public/index.html`](public/index.html) | 24 (tema), 331 (form) |
 | Dashboard (front) | [`public/admin/dashboard.js`](public/admin/dashboard.js) | 25, 56 |
-| Deploy | [`scripts/deploy-vps.js`](scripts/deploy-vps.js) | 20–48 |
+| Deploy (CI/CD) | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | — |
+| Conteinerização | [`docker-compose.yml`](docker-compose.yml) · [`Dockerfile`](Dockerfile) | — |
 
 ---
 

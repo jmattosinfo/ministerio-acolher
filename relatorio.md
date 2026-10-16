@@ -1,7 +1,8 @@
 # 📋 Relatório de Análise Técnica — Ministério Acolher
 
-> **Data da Análise:** 28 de Agosto de 2026  
+> **Data da Análise:** 28 de Agosto de 2026
 > **Escopo:** Análise completa da arquitetura, backend, frontend, banco de dados, geolocalização, segurança, internacionalização (i18n), infraestrutura e devops.
+> **Atualização (16/10/2026):** a infraestrutura e o deploy foram migrados para **Docker Compose + CI/CD (GitHub Actions)** na VPS; o modelo manual via **PM2/SFTP foi aposentado**. As seções 2 e 8 refletem o novo modelo.
 
 ---
 
@@ -14,7 +15,7 @@
 5. [Banco de Dados e Persistência](#5-banco-de-dados-e-persistência)
 6. [Integrações e Serviços Externos](#6-integrações-e-serviços-externos)
 7. [Segurança, Privacidade e LGPD](#7-segurança-privacidade-e-lgpd)
-8. [Automação e Scripts de Deploy](#8-automação-e-scripts-de-deploy)
+8. [Automação, Conteinerização e Deploy (CI/CD)](#8-automação-conteinerização-e-deploy-cicd)
 9. [Pontos Fortes do Projeto](#9-pontos-fortes-do-projeto)
 10. [Oportunidades de Melhoria e Recomendações](#10-oportunidades-de-melhoria-e-recomendações)
 
@@ -44,7 +45,15 @@ A aplicação adota a arquitetura de **Monólito Leve em Node.js (Express)**, co
 
 ```
 ministerio-acolher/
-├── server.js                          # Servidor principal (Express, MySQL pool, Nodemailer, rotas)
+├── server.js                          # Servidor principal (Express, MySQL pool, Nodemailer, rotas, GET /healthz)
+├── package.json / package-lock.json
+├── Dockerfile                         # Imagem de produção (node:22-alpine)
+├── docker-compose.yml                 # Stack de produção (app + MySQL)
+├── docker-compose.dev.yml             # Stack de desenvolvimento (hot-reload)
+├── .env.example                       # Modelo das variáveis de ambiente (versionado)
+├── .dockerignore                      # Exclusões do contexto de build
+├── .github/workflows/
+│   └── deploy.yml                     # CI/CD: validação (CI) + deploy automático na VPS (CD)
 ├── middleware/
 │   └── auth.js                        # Proteção de sessão do painel administrativo
 ├── routes/
@@ -64,11 +73,11 @@ ministerio-acolher/
 ├── views/admin/
 │   ├── login.html                     # Interface de login administrativo
 │   └── dashboard.html                 # Interface do dashboard analítico
-└── scripts/                           # Automação de deploy e manutenção
-    ├── deploy-vps.js                  # Deploy via SFTP + PM2 remote restart
+└── scripts/                           # Utilitários de manutenção (deploy legado aposentado)
     ├── gerar-hash-senha.js            # Utilitário Bcrypt para senha admin
     ├── deletar-ultimo-registro.js     # Script de limpeza de teste no banco
-    └── restart-server.js              # Reinicialização de processo
+    ├── deploy-vps.js                  # (LEGADO) Deploy SFTP + PM2 — substituído pelo CI/CD
+    └── restart-server.js              # (LEGADO) Reinício remoto via PM2 — aposentado
 ```
 
 ---
@@ -76,13 +85,13 @@ ministerio-acolher/
 ## 3. Análise Detalhada do Backend
 
 ### 3.1 Tecnologias e Dependências Primárias
-- **Node.js (≥ 18)** e **Express 5.2.1**: Servidor web resiliente e de alta performance.
+- **Node.js (22)** e **Express 5.2.1**: Servidor web resiliente e de alta performance.
 - **`mysql2/promise` (v3.22.5)**: Pool de conexões MySQL assíncrono.
 - **`express-session` (v1.19.0)**: Gerenciamento de sessão de usuário autenticado no painel admin.
 - **`bcryptjs` (v2.4.3)**: Hashing seguro de senhas.
 - **`nodemailer` (v9.0.3)**: Envio automatizado de e-mails de triagem via SMTP Brevo (Sendinblue).
 - **`country-state-city` (v3.2.1)**: Base local para listagem rápida de países, estados e cidades.
-- **`ssh2` (v1.17.0)**: Automação de deploy via protocolo SSH/SFTP.
+- **`ssh2` (v1.17.0, devDependency)**: Automação de deploy legado (SSH/SFTP); não entra na imagem de produção.
 
 ### 3.2 Rotas e Endpoints
 
@@ -156,7 +165,7 @@ CREATE TABLE IF NOT EXISTS cadastros (
 ```
 
 ### 5.2 Auto-migração Integrada
-Na inicialização da aplicação (`inicializarBanco()` em `server.js`), o sistema verifica dinamicamente a presença de colunas introduzidas em atualizações recentes (`pais`, `onde_conheceu`) através da tabela `INFORMATION_SCHEMA.COLUMNS`, executando `ALTER TABLE` automaticamente se necessário.
+Na inicialização da aplicação (`inicializarBanco()` em `server.js`), o sistema verifica dinamicamente a presença de colunas introduzidas em atualizações recentes (`pais`, `onde_conheceu`) através da tabela `INFORMATION_SCHEMA.COLUMNS`, executando `ALTER TABLE` automaticamente se necessário. A rotina possui **retry com backoff exponencial** e encerra o processo (fail-fast) caso o banco permaneça indisponível.
 
 ---
 
@@ -186,17 +195,24 @@ Na inicialização da aplicação (`inicializarBanco()` em `server.js`), o siste
 
 ---
 
-## 8. Automação e Scripts de Deploy
+## 8. Automação, Conteinerização e Deploy (CI/CD)
 
-O repositório possui uma suíte de automação em Node.js localizada na pasta `scripts/`:
+A aplicação é empacotada em **Docker** e orquestrada por **Docker Compose**; a publicação é **automatizada via GitHub Actions** (CI/CD), substituindo o modelo manual por PM2/SFTP.
 
-- **`scripts/deploy-vps.js`**:
-  - Conecta-se à VPS via SSH (`ssh2`) utilizando autenticação por chave privada (`id_ed25519`) ou senha.
-  - Realiza upload SFTP incremental dos diretórios e arquivos da aplicação.
-  - **Filtro de Segurança**: Bloqueia o envio de arquivos sensíveis como `.env`, `.env.example`, `.git`, `node_modules`, `scripts` e `.vscode`.
-  - Executa comando remoto para reiniciar o processo gerenciado pelo PM2 (`pm2 restart acolher.life`).
-- **`scripts/gerar-hash-senha.js`**: Auxiliar de linha de comando para gerar a hash Bcrypt da senha de administrador.
-- **`scripts/deletar-ultimo-registro.js`**: Utilitário para exclusão rápida do último registro cadastrado durante testes.
+### 8.1 Conteinerização
+- **`Dockerfile`**: imagem de produção baseada em `node:22-alpine`, execução como usuário não-root (`node`), `HEALTHCHECK` no endpoint `GET /healthz` e `CMD ["node", "server.js"]`.
+- **`docker-compose.yml`** (produção): dois containers — `acolher-life` (app, publicado apenas em `127.0.0.1:3000`) e `acolher-db` (`mysql:8.4.0`, sem porta publicada). Dados persistidos no volume nomeado **`acolher_mysql_data`**.
+- **`docker-compose.dev.yml`** (desenvolvimento): app com hot-reload (nodemon) na porta 3000 e MySQL na porta 3307.
+
+### 8.2 Pipeline CI/CD (`.github/workflows/deploy.yml`)
+Disparado em push na branch `main` (ou manualmente via `workflow_dispatch`), com `concurrency` para impedir deploys simultâneos:
+- **CI (`validate`)**: `npm ci` e checagem de sintaxe (`node --check`) dos módulos principais.
+- **CD (`deploy`)**: SSH na VPS → backup preventivo do banco (`mysqldump | gzip` em `backups/`) → `git reset --hard origin/main` → `docker compose up -d --build` → smoke test `GET /healthz` → remoção do PM2 legado → limpeza de imagens.
+
+### 8.3 Scripts de manutenção (`scripts/`)
+- **`scripts/gerar-hash-senha.js`**: gera a hash Bcrypt da senha de administrador (para `ADMIN_PASSWORD_HASH`).
+- **`scripts/deletar-ultimo-registro.js`**: exclusão rápida do último registro cadastrado durante testes.
+- **`scripts/deploy-vps.js`** e **`scripts/restart-server.js`**: **(LEGADOS)** deploy por SFTP + `pm2 restart` via `ssh2` — **aposentados** pelo CI/CD. Mantidos apenas como histórico.
 
 ---
 
@@ -225,6 +241,10 @@ O repositório possui uma suíte de automação em Node.js localizada na pasta `
   - Algoritmo de *Round-Robin* da equipe feminina;
   - Funções de geocoding (`utils/geocode.js`);
   - Sistema de tradução (`public/js/i18n.js`).
+
+### 10.4 Infraestrutura e Deploy
+- **Backup do banco**: já automatizado no pipeline (dump `mysqldump | gzip`, permissão `600`, retenção dos 10 mais recentes em `backups/`). Recomenda-se complementar com cópia diária **offsite criptografada**.
+- **Hardening**: pinar as imagens (`node:22-alpine`, `mysql:8.4.0`) e as GitHub Actions por digest/SHA; considerar migração de segredos para Docker `secrets`.
 
 ---
 

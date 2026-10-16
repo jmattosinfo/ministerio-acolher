@@ -23,12 +23,12 @@ Plataforma web para acolhimento emocional e espiritual especializado, gratuito e
   - [✅ Pré-requisitos](#-pré-requisitos)
   - [🚀 Instalação e Execução](#-instalação-e-execução)
     - [1. Clone o repositório](#1-clone-o-repositório)
-    - [2. Instale as dependências](#2-instale-as-dependências)
-    - [3. Configure o banco de dados MySQL](#3-configure-o-banco-de-dados-mysql)
-    - [4. Configure as variáveis de ambiente](#4-configure-as-variáveis-de-ambiente)
-    - [5. Gere o hash da senha administrativa](#5-gere-o-hash-da-senha-administrativa)
-    - [6. Execute o servidor](#6-execute-o-servidor)
-    - [7. Acesse](#7-acesse)
+    - [2. Configure as variáveis de ambiente](#2-configure-as-variáveis-de-ambiente)
+    - [3. Gere o hash da senha administrativa](#3-gere-o-hash-da-senha-administrativa)
+    - [Opção A — Docker Compose (recomendada)](#opção-a--docker-compose-recomendada)
+    - [Opção B — Execução manual (Node.js local)](#opção-b--execução-manual-nodejs-local)
+    - [Acesse](#acesse)
+    - [Parar a stack de desenvolvimento](#parar-a-stack-de-desenvolvimento)
   - [🔐 Variáveis de Ambiente](#-variáveis-de-ambiente)
     - [Exemplo de `.env`](#exemplo-de-env)
   - [📜 Scripts Disponíveis](#-scripts-disponíveis)
@@ -144,6 +144,8 @@ O acolhimento **não substitui** o atendimento psicológico, psiquiátrico ou ju
 | **Ícones** | [Lucide](https://lucide.dev/) | — |
 | **Fontes** | [Google Fonts](https://fonts.google.com/) (Cinzel, Playfair Display, Plus Jakarta Sans, Alex Brush) | — |
 | **Variáveis de Ambiente** | [dotenv](https://github.com/motdotla/dotenv) | ^17.4.2 |
+| **Conteinerização** | [Docker](https://www.docker.com/) + [Docker Compose](https://docs.docker.com/compose/) | — |
+| **CI/CD** | [GitHub Actions](https://github.com/features/actions) | — |
 | **Dev** | [Nodemon](https://nodemon.io/) | ^3.1.14 |
 
 ---
@@ -154,9 +156,18 @@ O acolhimento **não substitui** o atendimento psicológico, psiquiátrico ou ju
 ministerio-acolher/
 │
 ├── .gitignore
-├── package.json
-├── server.js                          # Servidor principal Express
+├── .dockerignore                      # Arquivos excluídos do contexto de build da imagem
+├── .env.example                       # Modelo das variáveis de ambiente (versionado)
 ├── .env                               # Variáveis de ambiente (não versionado)
+├── package.json
+├── Dockerfile                         # Imagem de produção (Node.js 22 Alpine)
+├── docker-compose.yml                 # Stack de produção (app + MySQL)
+├── docker-compose.dev.yml             # Stack de desenvolvimento (hot-reload via nodemon)
+├── server.js                          # Servidor principal Express
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml                 # CI/CD: validação (CI) + deploy automático na VPS (CD)
 │
 ├── middleware/
 │   └── auth.js                        # Middleware de autenticação (sessão)
@@ -197,11 +208,16 @@ ministerio-acolher/
 
 ## ✅ Pré-requisitos
 
-- **Node.js** versão 18 ou superior
-- **MySQL** 8.0+ (ou MariaDB 10.5+) — pode ser via **Docker** (`mysql:8`) no ambiente local/WSL
-- **npm** (gerenciador de pacotes do Node.js)
-- **Docker Desktop** (opcional, recomendado) — para subir o MySQL local sem instalar nativo
+**Para execução via Docker Compose (recomendada):**
+
+- **Docker Engine** 24+ e **Docker Compose v2** (comando `docker compose`)
 - Acesso à internet para consumo de APIs externas (Nominatim, Leaflet tiles)
+
+**Para execução manual (opcional):**
+
+- **Node.js** versão 22 (mesma base da imagem oficial do projeto)
+- **MySQL** 8.4 (ou compatível) — pode ser via Docker no ambiente local/WSL
+- **npm** (gerenciador de pacotes do Node.js)
 
 ---
 
@@ -214,15 +230,55 @@ git clone https://github.com/seu-usuario/ministerio-acolher.git
 cd ministerio-acolher
 ```
 
-### 2. Instale as dependências
+### 2. Configure as variáveis de ambiente
+
+O projeto versiona um arquivo [`.env.example`](.env.example) com todas as variáveis necessárias. Gere o `.env` de desenvolvimento a partir dele:
 
 ```bash
-npm install
+cp .env.example .env
 ```
 
-### 3. Configure o banco de dados MySQL
+Edite o `.env` e ajuste, no mínimo, as credenciais do banco e as chaves de sessão/e-mail. Consulte a [seção de variáveis de ambiente](#-variáveis-de-ambiente) para a lista completa.
 
-#### Opção A — via Docker (recomendada em ambiente local/WSL)
+> ⚠️ **Regra crítica — senhas com caracteres especiais:** o `ADMIN_PASSWORD_HASH` (e qualquer senha com `$`) **deve ficar entre aspas simples** no `.env` (`ADMIN_PASSWORD_HASH='$2b$10$...'`). Sem as aspas, o Docker Compose interpreta o `$` como interpolação de variável, corrompendo o hash e impedindo o login no painel administrativo.
+
+### 3. Gere o hash da senha administrativa
+
+```bash
+node scripts/gerar-hash-senha.js "sua-senha-aqui"
+```
+
+Copie a saída do script e cole no `.env` como `ADMIN_PASSWORD_HASH`, **sempre entre aspas simples**:
+
+```env
+ADMIN_PASSWORD_HASH='$2b$10$hashGeradoPeloScript'
+```
+
+### Opção A — Docker Compose (recomendada)
+
+A stack de desenvolvimento é orquestrada pelo [`docker-compose.dev.yml`](docker-compose.dev.yml) e sobe **dois containers**:
+
+| Container | Imagem | Porta (host) | Papel |
+|-----------|--------|--------------|-------|
+| `acolher-db-dev` | `mysql:8.4.0` | **3307** → 3306 | Banco MySQL 8.4 com volume nomeado `acolher_mysql_dev_data` |
+| `acolher-life-dev` | `node:22-alpine` | **3000** | Aplicação com o código montado por bind mount e **hot-reload via nodemon** |
+
+```bash
+# Sobe a stack e acompanha os logs no terminal
+docker compose -f docker-compose.dev.yml up
+
+# Ou em segundo plano (detached)
+docker compose -f docker-compose.dev.yml up -d
+
+# Acompanhar os logs da aplicação
+docker compose -f docker-compose.dev.yml logs -f acolher-app
+```
+
+> O container da aplicação sobrescreve automaticamente `DB_HOST=db` e `DB_PORT=3306` (rede interna do Compose), **ignorando** os valores `127.0.0.1`/`3307` do `.env` — estes servem apenas para a execução manual. O comando de inicialização roda `npm install && npm run dev`, garantindo o hot-reload.
+
+### Opção B — Execução manual (Node.js local)
+
+Alternativa sem Compose, útil para depuração. Requer **Node.js 22** e um **MySQL 8.4** acessível. Para subir apenas o banco de desenvolvimento via Docker:
 
 ```bash
 docker run -d --name acolher-db -p 3307:3306 \
@@ -233,72 +289,64 @@ docker run -d --name acolher-db -p 3307:3306 \
   mysql:8.4.0
 ```
 
-> A porta host **3307** é usada porque a **3306** costuma estar ocupada pelo MySQL nativo do Windows (ou outro serviço). Nesse caso, defina `DB_PORT=3307` no `.env`.
+> A porta host **3307** é usada porque a **3306** costuma estar ocupada pelo MySQL nativo do Windows (ou outro serviço). Nesse caso, mantenha `DB_PORT=3307` no `.env`.
 
-#### Opção B — MySQL/MariaDB nativo
+Em seguida:
 
-```sql
-CREATE DATABASE ministerio_acolher CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```bash
+npm install
+
+# Modo desenvolvimento (reload automático via nodemon)
+npm run dev
+
+# Modo produção
+npm start
 ```
 
 > A tabela `cadastros` é criada automaticamente na primeira execução do servidor.
 
-### 4. Configure as variáveis de ambiente
-
-Copie o arquivo de exemplo ou crie um arquivo `.env` na raiz do projeto:
-
-```bash
-# Não existe .env.example — crie manualmente o arquivo .env
-```
-
-Veja a [seção de variáveis de ambiente](#-variáveis-de-ambiente) para a lista completa.
-
-### 5. Gere o hash da senha administrativa
-
-```bash
-node scripts/gerar-hash-senha.js "sua-senha-aqui"
-```
-
-Copie o hash gerado e adicione ao `.env` como `ADMIN_PASSWORD_HASH`.
-
-### 6. Execute o servidor
-
-```bash
-# Modo produção
-npm start
-
-# Modo desenvolvimento (com reload automático)
-npm run dev
-```
-
-### 7. Acesse
+### Acesse
 
 - **Site público**: [http://localhost:3000](http://localhost:3000)
-- **Painel administrativo**: [http://localhost:3000/admin](http://localhost:3000/admin/login)
+- **Painel administrativo**: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
+
+### Parar a stack de desenvolvimento
+
+```bash
+# Encerra e remove os containers (os dados do MySQL são preservados no volume)
+docker compose -f docker-compose.dev.yml down
+
+# ATENÇÃO: 'down -v' remove o volume e APAGA todos os dados locais do banco
+```
 
 ---
 
 ## 🔐 Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+Crie o `.env` de desenvolvimento a partir do modelo versionado [`.env.example`](.env.example):
+
+```bash
+cp .env.example .env
+```
 
 | Variável | Obrigatória | Descrição | Padrão |
 |----------|-------------|-----------|--------|
 | `PORT` | Não | Porta do servidor | `3000` |
-| `DB_HOST` | Não | Host do MySQL | `127.0.0.1` |
-| `DB_PORT` | Não | Porta do MySQL | `3306` |
-| `DB_USER` | **Sim** | Usuário do MySQL | — |
-| `DB_PASSWORD` | **Sim** | Senha do MySQL | — |
-| `DB_NAME` | **Sim** | Nome do banco de dados | — |
+| `NODE_ENV` | Não | Ambiente (`development` \| `production`) | `development` |
+| `DB_HOST` | Não | Host do MySQL (sobrescrito para `db` no Compose) | `127.0.0.1` |
+| `DB_PORT` | Não | Porta do MySQL (sobrescrita para `3306` no Compose) | `3307` |
+| `DB_USER` | **Sim** | Usuário do MySQL | `acolher` |
+| `DB_PASSWORD` | **Sim** | Senha do MySQL | `acolher123` |
+| `DB_NAME` | **Sim** | Nome do banco de dados | `ministerio_acolher` |
+| `DB_ROOT_PASSWORD` | **Sim** (Compose) | Senha root do MySQL (usada pelos containers) | `root` |
 | `SESSION_SECRET` | **Sim** | Chave secreta para sessões Express | — |
-| `EMAIL_HOST` | **Sim** | Servidor SMTP (ex: Brevo) | — |
+| `EMAIL_HOST` | **Sim** | Servidor SMTP (ex: Brevo) | `smtp-relay.brevo.com` |
 | `EMAIL_PORT` | Não | Porta SMTP | `587` |
 | `EMAIL_USER` | **Sim** | Usuário SMTP | — |
 | `EMAIL_PASS` | **Sim** | Senha SMTP | — |
 | `EMAIL_FROM` | Não | Nome/exibição do remetente | `EMAIL_USER` |
 | `ADMIN_USERNAME` | **Sim** | Nome de usuário do painel admin | — |
-| `ADMIN_PASSWORD_HASH` | **Sim** | Hash bcrypt da senha admin | — |
-| `NODE_ENV` | Não | Ambiente (`development` \| `production`) | — |
+| `ADMIN_PASSWORD_HASH` | **Sim** | Hash bcrypt da senha admin (**entre aspas simples**) | — |
 
 ### Exemplo de `.env`
 
@@ -308,13 +356,14 @@ PORT=3000
 NODE_ENV=development
 
 # Banco de Dados
-# Se usar o container Docker local (acolher-db, porta host 3307):
+# Na execução manual (MySQL via Docker na porta host 3307):
 DB_HOST=127.0.0.1
 DB_PORT=3307
 DB_USER=acolher
 DB_PASSWORD=acolher123
 DB_NAME=ministerio_acolher
-# (Para MySQL/MariaDB nativo na 3306: DB_PORT=3306, usuário/senha do seu servidor)
+DB_ROOT_PASSWORD=root
+# (No Docker Compose dev, DB_HOST/DB_PORT são sobrescritos para db:3306)
 
 # Sessão
 SESSION_SECRET=uma-chave-secreta-muito-forte-aqui
@@ -328,10 +377,11 @@ EMAIL_FROM="Ministério Acolher <meu-email@exemplo.com>"
 
 # Admin
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD_HASH=$2a$10$... (hash gerado pelo script)
+# ASPAS SIMPLES obrigatórias: evita a interpolação do '$' pelo Docker Compose
+ADMIN_PASSWORD_HASH='$2b$10$... hash gerado pelo script'
 ```
 
-> ⚠️ **Importante**: O arquivo `.env` não deve ser versionado. Ele já está incluído no [`.gitignore`](.gitignore).
+> ⚠️ **Importante**: O arquivo `.env` não deve ser versionado. Ele já está incluído no [`.gitignore`](.gitignore). O modelo [`.env.example`](.env.example) **é** versionado e deve ser mantido atualizado.
 
 ---
 
@@ -342,6 +392,8 @@ ADMIN_PASSWORD_HASH=$2a$10$... (hash gerado pelo script)
 | `npm start` | Inicia o servidor em modo produção com `node server.js` |
 | `npm run dev` | Inicia o servidor com `nodemon` (reload automático em alterações) |
 | `node scripts/gerar-hash-senha.js "senha"` | Gera o hash bcrypt de uma senha para o painel admin |
+| `docker compose -f docker-compose.dev.yml up` | Sobe o ambiente de desenvolvimento completo (app Node.js 22 + MySQL 8.4) |
+| `docker compose -f docker-compose.dev.yml down` | Encerra e remove os containers de desenvolvimento (preserva o volume do banco) |
 
 ---
 
@@ -497,7 +549,8 @@ Este projeto está licenciado sob a licença **ISC**.
 
 - **Instagram**: [@acolher.life](https://www.instagram.com/acolher.life/)
 - **E-mail de acessibilidade**: acessibilidade@acolher.life
-- **Site**: [http://localhost:3000](http://localhost:3000) (em desenvolvimento)
+- **Site (produção)**: [https://acolher.life](https://acolher.life)
+- **Site (desenvolvimento local)**: [http://localhost:3000](http://localhost:3000)
 
 ---
 

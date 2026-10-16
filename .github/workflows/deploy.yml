@@ -74,6 +74,8 @@ jobs:
             git -c safe.directory="$APP_DIR" fetch --prune origin main
             git -c safe.directory="$APP_DIR" reset --hard origin/main
 
+            docker compose down --remove-orphans || true
+
             # Sobe a stack e aguarda os healthchecks
             docker compose up -d --build --remove-orphans
 

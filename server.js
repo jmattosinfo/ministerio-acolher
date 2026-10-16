@@ -39,56 +39,70 @@ const dbPool = mysql.createPool({
 });
 
 // ─── Criação da tabela ───────────────────────────────────────────────────────
-async function inicializarBanco() {
-    try {
-        const conn = await dbPool.getConnection();
-        await conn.query(`
-            CREATE TABLE IF NOT EXISTS cadastros (
-                id                       INT AUTO_INCREMENT PRIMARY KEY,
-                perfil_triagem           VARCHAR(30)  NOT NULL,
-                profissional_responsavel VARCHAR(50)  NOT NULL,
-                nome                     VARCHAR(150) NOT NULL,
-                data_nascimento          DATE,
-                localizacao              VARCHAR(200),
-                pais                     VARCHAR(100),
-                whatsapp                 VARCHAR(30)  NOT NULL,
-                estado_civil             VARCHAR(30),
-                rede_apoio               VARCHAR(30),
-                motivo_terapia           TEXT,
-                preferencia_horario      VARCHAR(30),
-                onde_conheceu            VARCHAR(50),
-                termo_sigilo             TINYINT(1) DEFAULT 0,
-                termo_sessoes            TINYINT(1) DEFAULT 0,
-                termo_gratuidade         TINYINT(1) DEFAULT 0,
-                criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+async function inicializarBanco(tentativas = 10) {
+    for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
+        try {
+            const conn = await dbPool.getConnection();
+            await conn.query(`
+                CREATE TABLE IF NOT EXISTS cadastros (
+                    id                       INT AUTO_INCREMENT PRIMARY KEY,
+                    perfil_triagem           VARCHAR(30)  NOT NULL,
+                    profissional_responsavel VARCHAR(50)  NOT NULL,
+                    nome                     VARCHAR(150) NOT NULL,
+                    data_nascimento          DATE,
+                    localizacao              VARCHAR(200),
+                    pais                     VARCHAR(100),
+                    whatsapp                 VARCHAR(30)  NOT NULL,
+                    estado_civil             VARCHAR(30),
+                    rede_apoio               VARCHAR(30),
+                    motivo_terapia           TEXT,
+                    preferencia_horario      VARCHAR(30),
+                    onde_conheceu            VARCHAR(50),
+                    termo_sigilo             TINYINT(1) DEFAULT 0,
+                    termo_sessoes            TINYINT(1) DEFAULT 0,
+                    termo_gratuidade         TINYINT(1) DEFAULT 0,
+                    criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
 
-        // Migração: adiciona colunas que podem não existir em tabelas antigas
-        const colunasNecessarias = {
-            'pais': 'VARCHAR(100) AFTER localizacao',
-            'onde_conheceu': 'VARCHAR(50) AFTER preferencia_horario'
-        };
-        for (const [coluna, definicao] of Object.entries(colunasNecessarias)) {
-            try {
-                const [existe] = await conn.query(
-                    `SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.COLUMNS
-                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cadastros' AND COLUMN_NAME = ?`,
-                    [coluna]
-                );
-                if (existe[0].total === 0) {
-                    await conn.query(`ALTER TABLE cadastros ADD COLUMN ${coluna} ${definicao}`);
-                    console.log(`✅ Coluna "${coluna}" adicionada com sucesso.`);
+            // Migração: adiciona colunas que podem não existir em tabelas antigas
+            const colunasNecessarias = {
+                'pais': 'VARCHAR(100) AFTER localizacao',
+                'onde_conheceu': 'VARCHAR(50) AFTER preferencia_horario'
+            };
+            for (const [coluna, definicao] of Object.entries(colunasNecessarias)) {
+                try {
+                    const [existe] = await conn.query(
+                        `SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.COLUMNS
+                         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'cadastros' AND COLUMN_NAME = ?`,
+                        [coluna]
+                    );
+                    if (existe[0].total === 0) {
+                        await conn.query(`ALTER TABLE cadastros ADD COLUMN ${coluna} ${definicao}`);
+                        console.log(`✅ Coluna "${coluna}" adicionada com sucesso.`);
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ Não foi possível verificar/adicionar coluna "${coluna}":`, e.message);
                 }
-            } catch (e) {
-                console.warn(`⚠️ Não foi possível verificar/adicionar coluna "${coluna}":`, e.message);
             }
-        }
 
-        conn.release();
-        console.log('✅ Banco de dados inicializado com sucesso.');
-    } catch (err) {
-        console.error('❌ Erro ao inicializar banco:', err.message);
+            conn.release();
+            console.log('✅ Banco de dados inicializado com sucesso.');
+            return;
+        } catch (err) {
+            console.error(`❌ Erro ao inicializar banco (tentativa ${tentativa}/${tentativas}):`, err.message);
+
+            // Fail-fast: encerra o processo se o banco não responder após todas as tentativas
+            if (tentativa >= tentativas) {
+                console.error('❌ Banco de dados indisponível após todas as tentativas. Encerrando o processo.');
+                process.exit(1);
+            }
+
+            // Backoff exponencial com teto de 15s (1s, 2s, 4s, 8s, 15s, 15s, ...)
+            const delay = Math.min(1000 * 2 ** (tentativa - 1), 15000);
+            console.log(`⏳ Nova tentativa em ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+        }
     }
 }
 
@@ -289,6 +303,9 @@ app.post('/api/cadastro', async (req, res) => {
     }
 });
 
+app.get('/healthz', (req, res) => {
+    res.status(200).json({ ok: true, timestamp: new Date().toISOString() });
+});
 // ─── Fallback ────────────────────────────────────────────────────────────────
 app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

@@ -580,6 +580,11 @@ const I18N = {
             'en': 'Language',
             'es': 'Idioma',
         },
+        'footer-developer': {
+            'pt-BR': 'Desenvolvido por <a href="https://jmattosdev.tech" target="_blank" rel="noopener noreferrer" class="underline hover:text-brand-light transition-colors">Júlio Mattos</a>',
+            'en': 'Developed by <a href="https://jmattosdev.tech" target="_blank" rel="noopener noreferrer" class="underline hover:text-brand-light transition-colors">Júlio Mattos</a>',
+            'es': 'Desarrollado por <a href="https://jmattosdev.tech" target="_blank" rel="noopener noreferrer" class="underline hover:text-brand-light transition-colors">Júlio Mattos</a>',
+        },
 
         // ── Compartilhar ──
         'compartilhar-text-imagem': {

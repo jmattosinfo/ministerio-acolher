@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: deploy-acolher-prod
+  cancel-in-progress: false
+
 jobs:
   validate:
     name: Validar Sintaxe (CI)
@@ -43,31 +47,44 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
+          command_timeout: 20m
+          script_stop: true
           script: |
             set -e
-            cd /home/acolher/htdocs/acolher.life
+            export GIT_TERMINAL_PROMPT=0
+            APP_DIR=/home/acolher/htdocs/acolher.life
+            BK_DIR=$APP_DIR/backups
+            cd "$APP_DIR"
+            
+            [ -f .env ] || { echo "ERRO: .env ausente — abortando deploy"; exit 1; }
 
-            # Backup automático preventivo se o container do banco já estiver rodando
-            if docker ps --format '{{.Names}}' | grep -q "^acolher-db$"; then
-              mkdir -p /home/acolher/backups
+            # Backup preventivo seguro caso o container do MySQL já esteja ativo
+            if docker ps --format '{{.Names}}' | grep -qx acolher-db; then
+              mkdir -p "$BK_DIR"
+              umask 077
               TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-              docker exec acolher-db sh -c 'exec mysqldump --no-tablespaces -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' > /home/acolher/backups/db_pre_deploy_$TIMESTAMP.sql
-              ls -1t /home/acolher/backups/db_pre_deploy_*.sql | tail -n +11 | xargs -r rm --
+              docker exec acolher-db sh -c \
+                'MYSQL_PWD="$MYSQL_PASSWORD" exec mysqldump --single-transaction --no-tablespaces -u"$MYSQL_USER" "$MYSQL_DATABASE"' \
+                | gzip > "$BK_DIR/db_pre_deploy_$TIMESTAMP.sql.gz"
+              [ -s "$BK_DIR/db_pre_deploy_$TIMESTAMP.sql.gz" ] || { echo "ERRO: backup gerado está vazio — abortando"; exit 1; }
+              ls -1t "$BK_DIR"/db_pre_deploy_*.sql.gz | tail -n +11 | xargs -r rm --
             fi
 
-            # Atualiza o código a partir da branch main
-            git fetch origin main
-            git reset --hard origin/main
+            # Atualiza repositório de forma segura
+            git -c safe.directory="$APP_DIR" fetch --prune origin main
+            git -c safe.directory="$APP_DIR" reset --hard origin/main
 
-            # Se o processo legado do PM2 ainda existir, para e remove
-            if command -v pm2 >/dev/null 2>&1 && pm2 describe acolher.life >/dev/null 2>&1; then
-              pm2 stop acolher.life
-              pm2 delete acolher.life
-              pm2 save
-            fi
-
-            # Sobe/atualiza os containers
+            # Sobe a stack e aguarda os healthchecks
             docker compose up -d --build --remove-orphans
 
-            # Limpa imagens antigas sem uso
+            # Smoke Test HTTP interno antes de desativar o PM2
+            echo "Aguardando inicialização da aplicação..."
+            curl -fsS --retry 10 --retry-delay 3 http://127.0.0.1:3000/healthz >/dev/null
+
+            # Desativa o processo legado do PM2 somente após o container responder OK
+            if command -v pm2 >/dev/null 2>&1 && pm2 describe acolher.life >/dev/null 2>&1; then
+              pm2 stop acolher.life && pm2 delete acolher.life && pm2 save
+            fi
+
+            # Limpa imagens antigas sem tag
             docker image prune -f

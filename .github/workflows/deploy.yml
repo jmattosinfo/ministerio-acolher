@@ -81,7 +81,8 @@ jobs:
 
             # Smoke Test HTTP interno antes de desativar o PM2
             echo "Aguardando inicialização da aplicação..."
-            curl -fsS --retry 10 --retry-delay 3 http://127.0.0.1:3000/healthz >/dev/null
+            sleep 3
+            curl -fsS --retry 10 --retry-delay 3 --retry-all-errors http://127.0.0.1:3000/healthz >/dev/null
 
             # Desativa o processo legado do PM2 somente após o container responder OK
             if command -v pm2 >/dev/null 2>&1 && pm2 describe acolher.life >/dev/null 2>&1; then

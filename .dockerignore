@@ -2,9 +2,13 @@ node_modules
 dist
 .git
 .gitignore
+.github
 .vscode
 plans
+scripts
 *.md
+*.sql
+*.sql.gz
 Dockerfile
 docker-compose*.yml
 .env

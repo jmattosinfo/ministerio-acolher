@@ -1,0 +1,154 @@
+/* public/css/tour-acolher.css
+ * Tema "acolhedor" para os popovers do Driver.js.
+ * Aplicado apenas aos balões do tour (classe passada em `popoverClass`),
+ * preservando a aparência padrão caso a biblioteca seja usada em outro lugar.
+ */
+
+.driver-popover.tour-acolher {
+    --tour-borda: #E8E0D4;
+    --tour-fundo: #FFFDF9;
+    --tour-texto: #2C1A1A;
+    --tour-suave: #7A5C5C;
+    --tour-primaria: #7A1C1C;
+    --tour-primaria-escura: #5C1414;
+    --tour-creme: #F4EFE6;
+
+    background-color: var(--tour-fundo);
+    color: var(--tour-texto);
+    border: 1px solid var(--tour-borda);
+    border-radius: 18px;
+    box-shadow: 0 20px 45px -14px rgba(92, 20, 20, 0.38);
+    padding: 20px 22px;
+    max-width: 340px;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Título */
+.driver-popover.tour-acolher .driver-popover-title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--tour-primaria-escura);
+    margin-bottom: 8px;
+}
+
+/* Descrição */
+.driver-popover.tour-acolher .driver-popover-description {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #4A3333;
+}
+
+.driver-popover.tour-acolher .driver-popover-description strong {
+    color: var(--tour-primaria-escura);
+    font-weight: 700;
+}
+
+/* Rodapé / progresso */
+.driver-popover.tour-acolher .driver-popover-footer {
+    margin-top: 16px;
+    gap: 10px;
+}
+
+.driver-popover.tour-acolher .driver-popover-progress-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--tour-suave);
+}
+
+/* Botões (Prev/Next/Concluir) */
+.driver-popover.tour-acolher button {
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 9px 16px;
+    text-shadow: none;
+    transition: background-color 0.15s ease, color 0.15s ease,
+        transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.driver-popover.tour-acolher button:active {
+    transform: translateY(0);
+}
+
+.driver-popover.tour-acolher button:focus-visible {
+    outline: 2px solid var(--tour-primaria);
+    outline-offset: 2px;
+}
+
+.driver-popover.tour-acolher .driver-popover-prev-btn {
+    background-color: var(--tour-creme);
+    color: var(--tour-primaria);
+    border: 1px solid var(--tour-borda);
+}
+
+.driver-popover.tour-acolher .driver-popover-prev-btn:hover {
+    background-color: #E8E0D4;
+    transform: translateY(-1px);
+}
+
+.driver-popover.tour-acolher .driver-popover-next-btn,
+.driver-popover.tour-acolher .driver-popover-done-btn {
+    background-color: var(--tour-primaria);
+    color: #FFFDF9;
+    border: 1px solid var(--tour-primaria);
+    box-shadow: 0 6px 14px -6px rgba(122, 28, 28, 0.6);
+}
+
+.driver-popover.tour-acolher .driver-popover-next-btn:hover,
+.driver-popover.tour-acolher .driver-popover-done-btn:hover {
+    background-color: var(--tour-primaria-escura);
+    border-color: var(--tour-primaria-escura);
+    transform: translateY(-1px);
+}
+
+/* Botão fechar (X) */
+.driver-popover.tour-acolher .driver-popover-close-btn {
+    top: 12px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: transparent;
+    color: var(--tour-suave);
+    font-size: 1.05rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.driver-popover.tour-acolher .driver-popover-close-btn:hover {
+    background-color: var(--tour-creme);
+    color: var(--tour-primaria-escura);
+}
+
+/* Setinha do balão acompanha o fundo claro */
+.driver-popover.tour-acolher .driver-popover-arrow-side-left {
+    border-left-color: var(--tour-fundo);
+}
+
+.driver-popover.tour-acolher .driver-popover-arrow-side-right {
+    border-right-color: var(--tour-fundo);
+}
+
+.driver-popover.tour-acolher .driver-popover-arrow-side-top {
+    border-top-color: var(--tour-fundo);
+}
+
+.driver-popover.tour-acolher .driver-popover-arrow-side-bottom {
+    border-bottom-color: var(--tour-fundo);
+}
+
+/* Em telas pequenas, deixa o balão mais confortável */
+@media (max-width: 480px) {
+    .driver-popover.tour-acolher {
+        max-width: min(92vw, 340px);
+        padding: 18px;
+    }
+}

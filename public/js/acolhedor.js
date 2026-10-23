@@ -1071,7 +1071,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!usuario) return; // redirecionamento para o login já disparado
 
         await aplicarPerfilUI();
-        carregarAtendimentos();
+
+        // Aguarda a lista para que o tour encontre as âncoras já renderizadas.
+        await carregarAtendimentos();
+
+        // Tour guiado: dispara apenas no primeiro acesso (localStorage).
+        // O botão "Rever Tutorial" (public/js/tour-acolhedor.js) reabre manualmente.
+        if (window.TourAcolher && typeof window.TourAcolher.iniciarPrimeiroAcesso === 'function') {
+            window.TourAcolher.iniciarPrimeiroAcesso();
+        }
     } catch (err) {
         console.error('Falha na inicialização do painel:', err);
         notificar(err.message || 'Não foi possível carregar o painel.', 'erro');

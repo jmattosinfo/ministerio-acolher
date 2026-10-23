@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{TITULO}}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #F4EFE6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 380px;
+        }
+
+        h1 {
+            color: #7A1C1C;
+            font-size: 20px;
+            margin: 0 0 4px;
+            text-align: center;
+        }
+
+        .subtitulo {
+            margin: 0 0 24px;
+            text-align: center;
+            font-size: 13px;
+            color: #7A5C5C;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #2C1A1A;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #7A1C1C;
+            box-shadow: 0 0 0 3px rgba(122, 28, 28, 0.12);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: #7A1C1C;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background: #5f1515;
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .linha-senha {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .linha-senha label {
+            margin-bottom: 0;
+        }
+
+        .link-esqueci {
+            background: none;
+            border: none;
+            padding: 0;
+            color: #7A1C1C;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        #erro,
+        #aviso {
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-align: center;
+            display: none;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        #erro {
+            color: #b00020;
+            background: #fdecef;
+        }
+
+        #aviso {
+            color: #1b5e20;
+            background: #e8f5e9;
+        }
+
+        /* ─── Modal ─── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(44, 26, 26, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 50;
+        }
+
+        .modal-overlay.aberto {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal h2 {
+            margin: 0 0 8px;
+            font-size: 17px;
+            color: #7A1C1C;
+        }
+
+        .modal p {
+            margin: 0 0 18px;
+            font-size: 13px;
+            color: #7A5C5C;
+            line-height: 1.5;
+        }
+
+        .modal-acoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn-secundario {
+            flex: 1;
+            padding: 11px;
+            background: #F4EFE6;
+            color: #2C1A1A;
+            border: 1px solid #E8E0D4;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-primario {
+            flex: 1;
+            padding: 11px;
+            background: #7A1C1C;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-primario:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #modalMensagem {
+            display: none;
+            font-size: 13px;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 12px 0 0;
+            line-height: 1.5;
+        }
+
+        #modalMensagem.sucesso {
+            display: block;
+            color: #1b5e20;
+            background: #e8f5e9;
+        }
+
+        #modalMensagem.erro {
+            display: block;
+            color: #b00020;
+            background: #fdecef;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/senha-toggle.css">
+</head>
+
+<body data-variante="{{VARIANTE}}" data-destino-padrao="{{DESTINO_PADRAO}}">
+    <div class="card">
+        <h1>{{MARCA}}</h1>
+        <p class="subtitulo">{{SUBTITULO}}</p>
+
+        <div id="aviso"></div>
+        <div id="erro"></div>
+
+        <form id="formLogin">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="Informe seu e-mail de cadastro"
+                   required autocomplete="username" autofocus>
+
+            <div class="linha-senha">
+                <label for="senha">Senha</label>
+                <button type="button" class="link-esqueci" id="btnEsqueciSenha">Esqueci minha senha</button>
+            </div>
+
+            <div class="campo-senha">
+                <input type="password" id="senha" name="senha" required autocomplete="current-password">
+                <button type="button" class="senha-toggle" data-toggle-senha="senha"
+                        aria-label="Mostrar senha" aria-pressed="false"></button>
+            </div>
+
+            <button type="submit" id="btnEntrar">Entrar</button>
+        </form>
+    </div>
+
+    <!-- Modal: recuperação de senha -->
+    <div class="modal-overlay" id="modalEsqueci">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
+            <h2 id="tituloModal">Recuperar acesso</h2>
+            <p>Informe o e-mail cadastrado na equipe. Enviaremos um link seguro para você criar uma nova senha.</p>
+
+            <form id="formEsqueci">
+                <label for="emailRecuperacao">E-mail</label>
+                <input type="email" id="emailRecuperacao" name="email"
+                       placeholder="seu.email@acolher.life" required autocomplete="email">
+
+                <div class="modal-acoes">
+                    <button type="button" class="btn-secundario" id="btnFecharModal">Cancelar</button>
+                    <button type="submit" class="btn-primario" id="btnEnviarLink">Enviar link</button>
+                </div>
+            </form>
+
+            <div id="modalMensagem"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('formLogin');
+        const erroDiv = document.getElementById('erro');
+        const avisoDiv = document.getElementById('aviso');
+        const btnEntrar = document.getElementById('btnEntrar');
+
+        const modal = document.getElementById('modalEsqueci');
+        const formEsqueci = document.getElementById('formEsqueci');
+        const emailRecuperacao = document.getElementById('emailRecuperacao');
+        const modalMensagem = document.getElementById('modalMensagem');
+        const btnEnviarLink = document.getElementById('btnEnviarLink');
+
+        // Injetado pelo servidor (utils/renderizarLogin.js)
+        const DESTINO_PADRAO = document.body.dataset.destinoPadrao || '/';
+
+        function mostrarMensagem(elemento, texto, tipo) {
+            elemento.textContent = texto;
+            if (tipo === 'sucesso') {
+                elemento.classList.remove('erro');
+                elemento.classList.add('sucesso');
+            } else if (tipo === 'erro') {
+                elemento.classList.remove('sucesso');
+                elemento.classList.add('erro');
+            } else {
+                elemento.style.display = 'block';
+            }
+        }
+
+        // Retorno do fluxo de redefinição de senha
+        if (new URLSearchParams(window.location.search).get('redefinida') === '1') {
+            avisoDiv.textContent = 'Senha redefinida com sucesso. Entre com sua nova senha.';
+            avisoDiv.style.display = 'block';
+        }
+
+        // Sessão revogada / conta bloqueada pelo administrador
+        if (new URLSearchParams(window.location.search).get('motivo') === 'bloqueado') {
+            erroDiv.textContent = 'Sua conta foi bloqueada ou a sessão foi revogada. Entre em contato com a administração.';
+            erroDiv.style.display = 'block';
+        }
+
+        // ─── Login ───
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            erroDiv.style.display = 'none';
+
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+
+            btnEntrar.disabled = true;
+            btnEntrar.textContent = 'Entrando...';
+
+            try {
+                const resp = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+                const data = await resp.json();
+
+                if (data.ok) {
+                    window.location.href = data.redirecionarPara || DESTINO_PADRAO;
+                    return;
+                }
+
+                erroDiv.textContent = data.mensagem || 'Não foi possível entrar.';
+                erroDiv.style.display = 'block';
+            } catch (err) {
+                erroDiv.textContent = 'Erro de conexão. Tente novamente.';
+                erroDiv.style.display = 'block';
+            } finally {
+                btnEntrar.disabled = false;
+                btnEntrar.textContent = 'Entrar';
+            }
+        });
+
+        // ─── Modal "Esqueci minha senha" ───
+        document.getElementById('btnEsqueciSenha').addEventListener('click', () => {
+            const emailLogin = document.getElementById('email').value.trim();
+            if (emailLogin) emailRecuperacao.value = emailLogin;
+
+            modalMensagem.className = '';
+            modalMensagem.textContent = '';
+            formEsqueci.style.display = 'block';
+            btnEnviarLink.disabled = false;
+            btnEnviarLink.textContent = 'Enviar link';
+
+            modal.classList.add('aberto');
+            emailRecuperacao.focus();
+        });
+
+        function fecharModal() {
+            modal.classList.remove('aberto');
+            formEsqueci.reset();
+            modalMensagem.className = '';
+            modalMensagem.textContent = '';
+        }
+
+        document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) fecharModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('aberto')) fecharModal();
+        });
+
+        formEsqueci.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailRecuperacao.value.trim();
+            modalMensagem.className = '';
+            modalMensagem.textContent = '';
+
+            btnEnviarLink.disabled = true;
+            btnEnviarLink.textContent = 'Enviando...';
+
+            try {
+                const resp = await fetch('/api/esqueci-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await resp.json();
+
+                if (data.ok) {
+                    formEsqueci.style.display = 'none';
+                    mostrarMensagem(
+                        modalMensagem,
+                        data.mensagem || 'Se este e-mail estiver cadastrado, enviaremos as instruções em instantes.',
+                        'sucesso'
+                    );
+                } else {
+                    mostrarMensagem(modalMensagem, data.mensagem || 'Não foi possível enviar o link.', 'erro');
+                    btnEnviarLink.disabled = false;
+                    btnEnviarLink.textContent = 'Enviar link';
+                }
+            } catch (err) {
+                mostrarMensagem(modalMensagem, 'Erro de conexão. Tente novamente.', 'erro');
+                btnEnviarLink.disabled = false;
+                btnEnviarLink.textContent = 'Enviar link';
+            }
+        });
+    </script>
+    <script src="/js/senha-toggle.js"></script>
+</body>
+
+</html>

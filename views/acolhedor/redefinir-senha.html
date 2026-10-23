@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Redefinir Senha — Ministério Acolher</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #F4EFE6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: #7A1C1C;
+            font-size: 20px;
+            margin: 0 0 6px;
+            text-align: center;
+        }
+
+        .subtitulo {
+            margin: 0 0 24px;
+            text-align: center;
+            font-size: 13px;
+            color: #7A5C5C;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #2C1A1A;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #7A1C1C;
+            box-shadow: 0 0 0 3px rgba(122, 28, 28, 0.12);
+        }
+
+        .dica {
+            display: block;
+            font-size: 11px;
+            color: #7A5C5C;
+            margin: -10px 0 16px;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: #7A1C1C;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background: #5f1515;
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .mensagem {
+            display: none;
+            font-size: 13px;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .mensagem.erro {
+            display: block;
+            color: #b00020;
+            background: #fdecef;
+        }
+
+        .mensagem.sucesso {
+            display: block;
+            color: #1b5e20;
+            background: #e8f5e9;
+        }
+
+        .rodape {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .rodape a {
+            color: #7A1C1C;
+            text-decoration: underline;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/senha-toggle.css">
+</head>
+
+<body>
+    <div class="card">
+        <h1>🌹 Ministério Acolher</h1>
+        <p class="subtitulo">Crie uma nova senha para acessar sua conta.</p>
+
+        <div id="mensagem" class="mensagem"></div>
+
+        <form id="formRedefinir" novalidate>
+            <label for="novaSenha">Nova Senha</label>
+            <div class="campo-senha">
+                <input type="password" id="novaSenha" name="novaSenha"
+                       minlength="6" required autocomplete="new-password"
+                       placeholder="Mínimo de 6 caracteres">
+                <button type="button" class="senha-toggle" data-toggle-senha="novaSenha"
+                        aria-label="Mostrar senha" aria-pressed="false"></button>
+            </div>
+            <span class="dica">Use pelo menos 6 caracteres.</span>
+
+            <label for="confirmarSenha">Confirmar Nova Senha</label>
+            <div class="campo-senha">
+                <input type="password" id="confirmarSenha" name="confirmarSenha"
+                       minlength="6" required autocomplete="new-password"
+                       placeholder="Repita a nova senha">
+                <button type="button" class="senha-toggle" data-toggle-senha="confirmarSenha"
+                        aria-label="Mostrar senha" aria-pressed="false"></button>
+            </div>
+
+            <button type="submit" id="btnRedefinir">Redefinir senha</button>
+        </form>
+
+        <p class="rodape"><a href="/admin/login">Voltar para o login</a></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('formRedefinir');
+        const mensagem = document.getElementById('mensagem');
+        const btn = document.getElementById('btnRedefinir');
+        const novaSenha = document.getElementById('novaSenha');
+        const confirmarSenha = document.getElementById('confirmarSenha');
+
+        const token = new URLSearchParams(window.location.search).get('token') || '';
+
+        function exibirMensagem(texto, tipo) {
+            mensagem.textContent = texto;
+            mensagem.className = 'mensagem ' + tipo;
+        }
+
+        if (!token) {
+            exibirMensagem('Link inválido: o token de redefinição não foi encontrado.', 'erro');
+            form.style.display = 'none';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const senha = novaSenha.value;
+            const confirmacao = confirmarSenha.value;
+
+            if (senha.length < 6) {
+                exibirMensagem('A nova senha deve ter pelo menos 6 caracteres.', 'erro');
+                novaSenha.focus();
+                return;
+            }
+
+            if (senha !== confirmacao) {
+                exibirMensagem('As senhas informadas não coincidem.', 'erro');
+                confirmarSenha.focus();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+            mensagem.className = 'mensagem';
+
+            try {
+                const resp = await fetch('/api/redefinir-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, senha })
+                });
+                const data = await resp.json();
+
+                if (data.ok) {
+                    form.style.display = 'none';
+                    exibirMensagem(data.mensagem || 'Senha redefinida com sucesso!', 'sucesso');
+
+                    setTimeout(() => {
+                        window.location.href = '/admin/login?redefinida=1';
+                    }, 2200);
+                    return;
+                }
+
+                exibirMensagem(data.mensagem || 'Não foi possível redefinir a senha.', 'erro');
+            } catch (err) {
+                exibirMensagem('Erro de conexão. Tente novamente.', 'erro');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Redefinir senha';
+            }
+        });
+    </script>
+    <script src="/js/senha-toggle.js"></script>
+</body>
+
+</html>

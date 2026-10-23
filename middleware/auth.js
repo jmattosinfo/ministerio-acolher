@@ -1,18 +1,21 @@
 // middleware/auth.js
-// Protege rotas do painel administrativo verificando se existe sessão autenticada.
+// Camada de compatibilidade: delega para a guarda de sessão unificada.
+//
+// A autenticação do Ministério Acolher é unificada (tabela `acolhedores`).
+// A regra administrativa vive em middleware/acolhedorAuth.js.
+//
+// Uso (se necessário):
+//   const criarAuth = require('../middleware/auth');
+//   const { requireAuth } = criarAuth(dbPool);
 
-function requireAuth(req, res, next) {
-    if (req.session && req.session.autenticado) {
-        return next();
-    }
+const { criarGuardaSessao } = require('./acolhedorAuth');
 
-    // Se for chamada de API, responde com JSON 401 (o front trata isso)
-    if (req.path.startsWith('/admin/api/')) {
-        return res.status(401).json({ ok: false, mensagem: 'Sessão expirada. Faça login novamente.' });
-    }
+module.exports = function criarAuth(dbPool) {
+    const { requireAdmin } = criarGuardaSessao(dbPool);
 
-    // Se for navegação normal, redireciona para a tela de login
-    return res.redirect('/admin/login');
-}
-
-module.exports = { requireAuth };
+    return {
+        // Sessão válida + perfil administrativo
+        requireAuth: requireAdmin,
+        requireAdmin
+    };
+};

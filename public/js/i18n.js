@@ -561,9 +561,9 @@ const I18N = {
             'es': '📤 Compartir página',
         },
         'footer-link-estatisticas': {
-            'pt-BR': 'Estatísticas de acesso',
-            'en': 'Access statistics',
-            'es': 'Estadísticas de acceso',
+            'pt-BR': 'Área do Acolhedor',
+            'en': 'Accessor Area',
+            'es': 'Área del Acolhedor',
         },
         'footer-copyright': {
             'pt-BR': '© 2025 Ministério Acolher · Todos os direitos reservados · Atendimento sigiloso e ético',

@@ -24,7 +24,7 @@ Plataforma web para acolhimento emocional e espiritual especializado, gratuito e
   - [🚀 Instalação e Execução](#-instalação-e-execução)
     - [1. Clone o repositório](#1-clone-o-repositório)
     - [2. Configure as variáveis de ambiente](#2-configure-as-variáveis-de-ambiente)
-    - [3. Gere o hash da senha administrativa](#3-gere-o-hash-da-senha-administrativa)
+    - [3. Crie o administrador inicial](#3-crie-o-administrador-inicial)
     - [Opção A — Docker Compose (recomendada)](#opção-a--docker-compose-recomendada)
     - [Opção B — Execução manual (Node.js local)](#opção-b--execução-manual-nodejs-local)
     - [Acesse](#acesse)
@@ -240,19 +240,18 @@ cp .env.example .env
 
 Edite o `.env` e ajuste, no mínimo, as credenciais do banco e as chaves de sessão/e-mail. Consulte a [seção de variáveis de ambiente](#-variáveis-de-ambiente) para a lista completa.
 
-> ⚠️ **Regra crítica — senhas com caracteres especiais:** o `ADMIN_PASSWORD_HASH` (e qualquer senha com `$`) **deve ficar entre aspas simples** no `.env` (`ADMIN_PASSWORD_HASH='$2b$10$...'`). Sem as aspas, o Docker Compose interpreta o `$` como interpolação de variável, corrompendo o hash e impedindo o login no painel administrativo.
+> ⚠️ **Regra — valores com `$` no `.env`:** qualquer valor que contenha `$` (senhas de banco/SMTP) **deve ficar entre aspas simples** no `.env`. Sem as aspas, o Docker Compose interpreta o `$` como interpolação de variável e corrompe o valor.
 
-### 3. Gere o hash da senha administrativa
+### 3. Crie o administrador inicial
+
+A autenticação é unificada na tabela `acolhedores` (e-mail + `senha_hash` bcrypt). Não existem mais `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` no `.env`.
 
 ```bash
-node scripts/gerar-hash-senha.js "sua-senha-aqui"
+# Cria (ou atualiza) um administrador com senha já hasheada
+node scripts/criar-admin-inicial.js "Nome do Admin" "admin@acolher.life" "SuaSenhaForte"
 ```
 
-Copie a saída do script e cole no `.env` como `ADMIN_PASSWORD_HASH`, **sempre entre aspas simples**:
-
-```env
-ADMIN_PASSWORD_HASH='$2b$10$hashGeradoPeloScript'
-```
+> O próprio administrador pode convidar os demais membros da equipe pelo painel (`POST /acolhedor/api/equipe`) e o convidado define a senha no primeiro acesso. Quem esquecer a senha usa o link **“Esqueci minha senha”** na tela de login, que envia um link válido por 2 horas.
 
 ### Opção A — Docker Compose (recomendada)
 
@@ -345,8 +344,8 @@ cp .env.example .env
 | `EMAIL_USER` | **Sim** | Usuário SMTP | — |
 | `EMAIL_PASS` | **Sim** | Senha SMTP | — |
 | `EMAIL_FROM` | Não | Nome/exibição do remetente | `EMAIL_USER` |
-| `ADMIN_USERNAME` | **Sim** | Nome de usuário do painel admin | — |
-| `ADMIN_PASSWORD_HASH` | **Sim** | Hash bcrypt da senha admin (**entre aspas simples**) | — |
+
+> 🔐 **Autenticação unificada:** as antigas variáveis `ADMIN_USERNAME` e `ADMIN_PASSWORD_HASH` foram **descontinuadas**. O login consulta a tabela `acolhedores` do banco de dados.
 
 ### Exemplo de `.env`
 
@@ -375,10 +374,8 @@ EMAIL_USER=meu-email@exemplo.com
 EMAIL_PASS=xkeysib-xxxxx
 EMAIL_FROM="Ministério Acolher <meu-email@exemplo.com>"
 
-# Admin
-ADMIN_USERNAME=admin
-# ASPAS SIMPLES obrigatórias: evita a interpolação do '$' pelo Docker Compose
-ADMIN_PASSWORD_HASH='$2b$10$... hash gerado pelo script'
+# Admin: criado no banco (tabela acolhedores), não no .env:
+# node scripts/criar-admin-inicial.js "Nome" "admin@acolher.life" "SuaSenhaForte"
 ```
 
 > ⚠️ **Importante**: O arquivo `.env` não deve ser versionado. Ele já está incluído no [`.gitignore`](.gitignore). O modelo [`.env.example`](.env.example) **é** versionado e deve ser mantido atualizado.
@@ -391,7 +388,8 @@ ADMIN_PASSWORD_HASH='$2b$10$... hash gerado pelo script'
 |---------|-----------|
 | `npm start` | Inicia o servidor em modo produção com `node server.js` |
 | `npm run dev` | Inicia o servidor com `nodemon` (reload automático em alterações) |
-| `node scripts/gerar-hash-senha.js "senha"` | Gera o hash bcrypt de uma senha para o painel admin |
+| `node scripts/criar-admin-inicial.js "Nome" "email" "senha"` | Cria/atualiza um administrador na tabela `acolhedores` |
+| `node scripts/gerar-hash-senha.js "senha"` | Gera um hash bcrypt (uso manual/emergencial) |
 | `docker compose -f docker-compose.dev.yml up` | Sobe o ambiente de desenvolvimento completo (app Node.js 22 + MySQL 8.4) |
 | `docker compose -f docker-compose.dev.yml down` | Encerra e remove os containers de desenvolvimento (preserva o volume do banco) |
 

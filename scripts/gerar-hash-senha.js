@@ -1,6 +1,12 @@
 // scripts/gerar-hash-senha.js
 // Uso: node scripts/gerar-hash-senha.js "minhaSenhaSuperSecreta"
-// Copie o hash gerado para a variável ADMIN_PASSWORD_HASH no .env
+//
+// A autenticação é unificada na tabela `acolhedores` (coluna `senha_hash`).
+// Para criar um administrador com senha, prefira:
+//   node scripts/criar-admin-inicial.js "Nome" "email" "senha"
+//
+// Este script serve para uso manual/emergencial (ex.: atualizar uma senha
+// diretamente no banco com SQL).
 
 const bcrypt = require('bcryptjs');
 
@@ -12,5 +18,7 @@ if (!senha) {
 }
 
 const hash = bcrypt.hashSync(senha, 10);
-console.log('\nAdicione esta linha ao seu .env:\n');
-console.log(`ADMIN_PASSWORD_HASH=${hash}\n`);
+console.log('\nHash bcrypt gerado:\n');
+console.log(hash + '\n');
+console.log('Exemplo de uso manual no MySQL:\n');
+console.log(`UPDATE acolhedores SET senha_hash = '${hash}' WHERE email = 'usuario@acolher.life';\n`);

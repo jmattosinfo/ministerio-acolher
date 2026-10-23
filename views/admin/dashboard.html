@@ -20,35 +20,149 @@
             color: #2C1A1A;
         }
 
+        /* ─── Header ─────────────────────────────────────────── */
         header {
             background: #7A1C1C;
             color: #fff;
-            padding: 16px 20px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
 
-        header h1 {
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .marca img {
+            height: 32px;
+        }
+
+        .marca h1 {
             font-size: 16px;
             margin: 0;
+            line-height: 1.15;
         }
 
-        #btnSair {
+        .marca p {
+            margin: 0;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .abas {
+            display: flex;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.16);
+            padding: 4px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .aba {
+            border: 0;
             background: transparent;
-            border: 1px solid #fff;
+            color: #F4EFE6;
+            padding: 7px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.15s ease;
+        }
+
+        .aba:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .aba.ativo {
+            background: #fff;
+            color: #7A1C1C;
+        }
+
+        .acoes-topo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-topo {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.75);
             color: #fff;
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            transition: background 0.15s ease;
         }
 
+        .btn-topo:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        /* ─── Aviso / Toast ──────────────────────────────────── */
+        .aviso {
+            max-width: 1200px;
+            margin: 14px auto 0;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #FFF7E6;
+            border: 1px solid #E6C15A;
+            color: #6B4A00;
+            font-size: 13px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #5C1414;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 100;
+            max-width: 90vw;
+        }
+
+        .toast.visivel {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.erro {
+            background: #9B1C31;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ─── Layout ─────────────────────────────────────────── */
         main {
             padding: 16px;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 0 auto 40px;
         }
 
         .filtros {
@@ -117,18 +231,496 @@
             max-height: 280px;
         }
 
-        .total-card {
+        /* ─── Painéis / Gestão de usuários ───────────────────── */
+        .painel-card {
             background: #fff;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
+            border-radius: 14px;
+            padding: 18px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        .total-card .numero {
-            font-size: 28px;
-            font-weight: bold;
+        .painel-card-topo {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .painel-card-topo h2 {
+            margin: 0;
+            font-size: 17px;
             color: #7A1C1C;
+        }
+
+        .painel-card-topo p {
+            margin: 4px 0 0;
+            font-size: 12.5px;
+            color: #7A5C5C;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: background 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primario {
+            background: #7A1C1C;
+            color: #fff;
+        }
+
+        .btn-primario:hover:not(:disabled) {
+            background: #5C1414;
+        }
+
+        .btn-secundario {
+            background: #fff;
+            color: #7A1C1C;
+            border-color: #D9C9B4;
+        }
+
+        .btn-secundario:hover:not(:disabled) {
+            background: #F4EFE6;
+        }
+
+        .btn-perigo {
+            background: #fff;
+            color: #9B1C31;
+            border-color: #E7B7C0;
+        }
+
+        .btn-perigo:hover:not(:disabled) {
+            background: #FDF1F3;
+        }
+
+        /* Ação destrutiva/bloqueio: botão sólido bordô */
+        .btn-perigo-solido {
+            background: #9B1C31;
+            color: #fff;
+            border-color: #9B1C31;
+        }
+
+        .btn-perigo-solido:hover:not(:disabled) {
+            background: #7A1425;
+        }
+
+        .modal-icone-alerta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: #FDF1F3;
+            color: #9B1C31;
+            flex-shrink: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 12px;
+        }
+
+        .form-grid label,
+        .campo label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #7A5C5C;
+            margin-bottom: 5px;
+        }
+
+        .form-grid input,
+        .campo input {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid #E0D5C6;
+            border-radius: 8px;
+            font-size: 13.5px;
+            background: #FFFDF9;
+            color: #2C1A1A;
+        }
+
+        .form-grid input:focus,
+        .campo input:focus {
+            outline: none;
+            border-color: #7A1C1C;
+        }
+
+        .mensagem {
+            font-size: 12.5px;
+            border-radius: 8px;
+            padding: 9px 12px;
+            margin-bottom: 12px;
+        }
+
+        .mensagem.sucesso {
+            background: #ECFDF3;
+            color: #1B6B3A;
+            border: 1px solid #B7E4C7;
+        }
+
+        .mensagem.erro {
+            background: #FDF1F3;
+            color: #9B1C31;
+            border: 1px solid #E7B7C0;
+        }
+
+        .tabela-wrapper {
+            overflow-x: auto;
+            border: 1px solid #EFE7DB;
+            border-radius: 10px;
+        }
+
+        .tabela-equipe {
+            width: 100%;
+            min-width: 560px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .tabela-equipe thead {
+            background: #F4EFE6;
+            color: #7A5C5C;
+            text-transform: uppercase;
+            font-size: 10.5px;
+            letter-spacing: 0.05em;
+        }
+
+        .tabela-equipe th,
+        .tabela-equipe td {
+            text-align: left;
+            padding: 11px 14px;
+            border-bottom: 1px solid #F1EAE0;
+            vertical-align: middle;
+        }
+
+        .tabela-equipe tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .tabela-equipe td.nome {
+            font-weight: 600;
+        }
+
+        .tabela-equipe .vazio {
+            text-align: center;
+            color: #7A5C5C;
+            padding: 22px;
+        }
+
+        .acoes-col {
+            text-align: right !important;
+        }
+
+        .acoes-linha {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .acoes-linha .btn {
+            padding: 6px 10px;
+            font-size: 11.5px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid transparent;
+    }
+
+        .badge.ativo {
+            background: #ECFDF3;
+            color: #1B6B3A;
+            border-color: #B7E4C7;
+        }
+
+        .badge.bloqueado {
+            background: #FDF1F3;
+            color: #9B1C31;
+            border-color: #E7B7C0;
+        }
+
+        .badge.admin {
+            background: #EEF2FF;
+            color: #3730A3;
+            border-color: #C7D2FE;
+        }
+
+        .nota {
+            font-size: 11.5px;
+            color: #7A5C5C;
+            margin: 12px 0 0;
+        }
+
+        /* ─── Avaliações / Feedback ──────────────────────────── */
+        .feedback-resumo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .feedback-metrica {
+            background: #F4EFE6;
+            border: 1px solid #E8E0D4;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .feedback-metrica .valor {
+            font-size: 26px;
+            font-weight: 700;
+            color: #7A1C1C;
+            line-height: 1.1;
+        }
+
+        .feedback-metrica .valor small {
+            font-size: 13px;
+            font-weight: 600;
+            color: #7A5C5C;
+        }
+
+        .feedback-metrica .rotulo {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #7A5C5C;
+            margin-top: 4px;
+        }
+
+        .distribuicao {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-top: 8px;
+        }
+
+        .distribuicao-linha {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: #7A5C5C;
+        }
+
+        .distribuicao-linha .valor-nota {
+            width: 42px;
+            flex-shrink: 0;
+        }
+
+        .distribuicao-linha .barra {
+            flex: 1;
+            height: 8px;
+            background: #EFE7DB;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .distribuicao-linha .preenchimento {
+            height: 100%;
+            background: #B02334;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        .distribuicao-linha .total-nota {
+            width: 24px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .lista-feedbacks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feedback-item {
+            border: 1px solid #EFE7DB;
+            border-radius: 12px;
+            padding: 13px 15px;
+            background: #FFFDF9;
+        }
+
+        .feedback-item-topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .feedback-coroes {
+            color: #B02334;
+            font-size: 14px;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .feedback-data {
+            font-size: 11px;
+            color: #A08B8B;
+            white-space: nowrap;
+        }
+
+        .feedback-texto {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #2C1A1A;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .feedback-vazio {
+            text-align: center;
+            color: #7A5C5C;
+            font-size: 13px;
+            padding: 22px 10px;
+            margin: 0;
+        }
+
+        /* ─── Modais ─────────────────────────────────────────── */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 60;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 70;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .modal-caixa {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+            margin: auto;
+            overflow: hidden;
+        }
+
+        .modal-topo {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 20px;
+            background: #F4EFE6;
+            border-bottom: 1px solid #E8E0D4;
+        }
+
+        .modal-topo h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #7A1C1C;
+        }
+
+        .modal-topo p {
+            margin: 3px 0 0;
+            font-size: 11.5px;
+            color: #7A5C5C;
+        }
+
+        .modal-fechar {
+            border: 0;
+            background: transparent;
+            color: #7A5C5C;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-corpo {
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-rodape {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+            padding: 14px 20px;
+            border-top: 1px solid #F1EAE0;
+        }
+
+        .divisor {
+            border: 0;
+            border-top: 1px solid #F1EAE0;
+            margin: 2px 0;
+        }
+
+        .legenda-sessao {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #7A5C5C;
+        }
+
+        .dica {
+            font-size: 11px;
+            color: #7A5C5C;
+            margin: 5px 0 0;
+        }
+
+        .dupla {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 560px) {
+            .modal-rodape {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+
+            .dupla {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 600px) {
@@ -138,89 +730,345 @@
                 gap: 10px;
             }
 
-            header h1 {
+            .marca h1 {
                 font-size: 15px;
             }
 
-            header h1 img {
-                height: 24px;
+            .abas,
+            .acoes-topo {
+                width: 100%;
             }
 
-            header>div {
-                width: 100%;
-                justify-content: space-between;
+            .abas .aba {
+                flex: 1;
+                text-align: center;
             }
         }
     </style>
+    <link rel="stylesheet" href="/css/senha-toggle.css">
 </head>
 
 <body>
     <header>
-        <h1><img src="/assets/images/logo-lado.png" alt="Ministério Acolher" style="height: 32px; vertical-align: middle; margin-right: 8px;">
-            Painel Administrativo
-        </h1>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <a href="/" style="color: #fff; font-size: 13px; text-decoration: none; opacity: 0.85; display: flex; align-items: center; gap: 4px;">
-                <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Voltar ao site
+        <div class="marca">
+            <img src="/assets/images/logo.svg" alt="Ministério Acolher">
+            <div>
+                <h1>Painel Administrativo</h1>
+                <p>Gestão de acessos e visão global</p>
+            </div>
+        </div>
+
+        <nav class="abas" aria-label="Navegação do painel">
+            <button type="button" class="aba ativo" data-aba="geral">Visão Geral</button>
+            <button type="button" class="aba" data-aba="equipe">Equipe</button>
+            <button type="button" class="aba" data-aba="avaliacoes">Avaliações</button>
+        </nav>
+
+        <div class="acoes-topo">
+            <button type="button" id="btnMinhaContaAdmin" class="btn-topo">
+                <i data-lucide="user-cog" style="width: 14px; height: 14px;"></i> Minha Conta
+            </button>
+            <a href="/" class="btn-topo">
+                <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Site
             </a>
-            <button id="btnSair" style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" id="btnSair" class="btn-topo">
                 <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Sair
             </button>
         </div>
     </header>
 
+    <div id="avisoSistema" class="aviso hidden">
+        <i data-lucide="shield-alert" style="width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;"></i>
+        <span id="avisoSistemaTexto"></span>
+    </div>
+
+    <div id="toastAdmin" class="toast" role="status" aria-live="polite"></div>
+
     <main>
-        <div class="filtros">
-            <button data-periodo="semana">Última semana</button>
-            <button data-periodo="mes">Último mês</button>
-            <button data-periodo="ano">Último ano</button>
-            <button data-periodo="todos" class="ativo">Todos</button>
-        </div>
+        <!-- ─── Aba: Visão Geral ─────────────────────────────── -->
+        <section id="secaoGeral">
+            <div class="filtros">
+                <button type="button" data-periodo="semana">Última semana</button>
+                <button type="button" data-periodo="mes">Último mês</button>
+                <button type="button" data-periodo="ano">Último ano</button>
+                <button type="button" data-periodo="todos" class="ativo">Todos</button>
+            </div>
 
-        <div class="total-card">
-            <div class="numero" id="totalPessoas">—</div>
-            <div class="label">Total de pessoas acolhidas</div>
-        </div>
+            <div class="total-card">
+                <div class="numero" id="totalPessoas">—</div>
+                <div class="label">Total de pessoas acolhidas</div>
+            </div>
 
-        <div class="grid">
-            <div class="grafico-card">
-                <h2><i data-lucide="users" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Distribuição por faixa etária</h2>
-                <canvas id="graficoFaixaEtaria"></canvas>
+            <div class="grid">
+                <div class="grafico-card">
+                    <h2><i data-lucide="users" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Distribuição por faixa etária</h2>
+                    <canvas id="graficoFaixaEtaria"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="user" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Distribuição por perfil de triagem (sexo)</h2>
+                    <canvas id="graficoSexo"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="user-check" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Estado civil</h2>
+                    <canvas id="graficoEstadoCivil"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="message-square" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Motivo da procura</h2>
+                    <canvas id="graficoMotivo"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="bar-chart-3" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Pessoas acolhidas por Cidade / Estado</h2>
+                    <canvas id="graficoLocalizacao"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="search" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Onde conheceu o Acolher</h2>
+                    <canvas id="graficoOndeConheceu"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="heart" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Rede de apoio</h2>
+                    <canvas id="graficoRedeApoio"></canvas>
+                </div>
+                <div class="grafico-card">
+                    <h2><i data-lucide="globe" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Países (exceto Brasil)</h2>
+                    <canvas id="graficoPaises"></canvas>
+                </div>
             </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="user" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Distribuição por perfil de triagem (sexo)</h2>
-                <canvas id="graficoSexo"></canvas>
+        </section>
+
+        <!-- ─── Aba: Equipe ──────────────────────────────────── -->
+        <section id="secaoEquipe" class="hidden">
+            <div class="painel-card">
+                <div class="painel-card-topo">
+                    <div>
+                        <h2>Gestão de Usuários</h2>
+                        <p>Cadastre acolhedores e envie o convite de primeiro acesso por e-mail.</p>
+                    </div>
+                    <button type="button" id="btnAtualizarEquipe" class="btn btn-secundario">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Atualizar
+                    </button>
+                </div>
+
+                <form id="formNovoAcolhedor" class="form-grid" novalidate>
+                    <div>
+                        <label for="novoNome">Nome</label>
+                        <input id="novoNome" name="nome" type="text" maxlength="100" placeholder="Nome do acolhedor(a)" required>
+                    </div>
+                    <div>
+                        <label for="novoEmail">E-mail</label>
+                        <input id="novoEmail" name="email" type="email" maxlength="150" placeholder="pessoa@exemplo.com" required>
+                    </div>
+                    <div class="form-acao">
+                        <button type="submit" id="btnCadastrarAcolhedor" class="btn btn-primario">
+                            <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i> Cadastrar e convidar
+                        </button>
+                    </div>
+                </form>
+
+                <div id="mensagemEquipe" class="mensagem hidden"></div>
+
+                <div class="tabela-wrapper">
+                    <table class="tabela-equipe">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Status</th>
+                                <th class="acoes-col">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoEquipe">
+                            <tr>
+                                <td colspan="4" class="vazio">Carregando equipe...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="nota">
+                    <i data-lucide="shield-check" style="width: 12px; height: 12px; vertical-align: -2px;"></i>
+                    Os prontuários e dados clínicos são exclusivos de cada acolhedor. O administrador gerencia apenas acessos.
+                </p>
             </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="user-check" style="width: 16px; height: 16px; vertical-align: -3px;"></i>   Estado civil</h2>
-                <canvas id="graficoEstadoCivil"></canvas>
+        </section>
+
+        <!-- ─── Aba: Avaliações / Feedback ───────────────────── -->
+        <section id="secaoAvaliacoes" class="hidden">
+            <div class="painel-card">
+                <div class="painel-card-topo">
+                    <div>
+                        <h2>Avaliações recebidas</h2>
+                        <p>Feedbacks anônimos enviados pela página pública de avaliação.</p>
+                    </div>
+                    <div class="acoes-linha">
+                        <a href="/feedback" target="_blank" rel="noopener" class="btn btn-secundario">
+                            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i> Abrir página
+                        </a>
+                        <button type="button" id="btnAtualizarFeedbacks" class="btn btn-secundario">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Atualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="feedback-resumo">
+                    <div class="feedback-metrica">
+                        <div class="valor" id="feedbackMedia">—</div>
+                        <div class="rotulo">Nota média</div>
+                    </div>
+                    <div class="feedback-metrica">
+                        <div class="valor" id="feedbackTotal">—</div>
+                        <div class="rotulo">Avaliações recebidas</div>
+                    </div>
+                    <div class="feedback-metrica">
+                        <div class="rotulo">Distribuição por nota</div>
+                        <div class="distribuicao" id="feedbackDistribuicao"></div>
+                    </div>
+                </div>
+
+                <div id="listaFeedbacks" class="lista-feedbacks" aria-live="polite">
+                    <p class="feedback-vazio">Carregando avaliações...</p>
+                </div>
+
+                <p class="nota">
+                    <i data-lucide="shield-check" style="width: 12px; height: 12px; vertical-align: -2px;"></i>
+                    As avaliações são anônimas: não há vínculo com prontuários ou dados de acolhimento.
+                </p>
             </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="message-square" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Motivo da procura</h2>
-                <canvas id="graficoMotivo"></canvas>
-            </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="bar-chart-3" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Pessoas acolhidas por Cidade / Estado</h2>
-                <canvas id="graficoLocalizacao"></canvas>
-            </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="search" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Onde conheceu o Acolher</h2>
-                <canvas id="graficoOndeConheceu"></canvas>
-            </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="heart" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Rede de apoio</h2>
-                <canvas id="graficoRedeApoio"></canvas>
-            </div>
-            <div class="grafico-card">
-                <h2><i data-lucide="globe" style="width: 16px; height: 16px; vertical-align: -3px;"></i> Países (exceto Brasil)</h2>
-                <canvas id="graficoPaises"></canvas>
-            </div>
-        </div>
+        </section>
     </main>
+
+    <!-- ─── Modal: Minha Conta (admin) ───────────────────────── -->
+    <div id="modalContaAdminBackdrop" class="modal-backdrop hidden"></div>
+    <div id="modalContaAdmin" class="modal hidden">
+        <div class="modal-caixa">
+            <div class="modal-topo">
+                <div>
+                    <h2>Minha Conta</h2>
+                    <p>Atualize seus dados de acesso administrativo</p>
+                </div>
+                <button type="button" id="btnFecharContaAdmin" class="modal-fechar" aria-label="Fechar">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+
+            <form id="formContaAdmin" novalidate>
+                <div class="modal-corpo">
+                    <div id="contaAdminMensagem" class="mensagem hidden"></div>
+
+                    <div class="campo">
+                        <label for="contaAdminNome">Nome de exibição</label>
+                        <input id="contaAdminNome" name="nome" type="text" maxlength="100" autocomplete="name" required>
+                    </div>
+
+                    <div class="campo">
+                        <label for="contaAdminEmail">E-mail</label>
+                        <input id="contaAdminEmail" name="email" type="email" maxlength="150" autocomplete="email" required>
+                    </div>
+
+                    <hr class="divisor">
+                    <span class="legenda-sessao">Troca de senha (opcional)</span>
+
+                    <div class="campo">
+                        <label for="contaAdminSenhaAtual">Senha atual</label>
+                        <div class="campo-senha">
+                            <input id="contaAdminSenhaAtual" name="senhaAtual" type="password" autocomplete="current-password">
+                            <button type="button" class="senha-toggle" data-toggle-senha="contaAdminSenhaAtual"
+                                    aria-label="Mostrar senha" aria-pressed="false"></button>
+                        </div>
+                        <p class="dica">Obrigatória para alterar e-mail ou senha.</p>
+                    </div>
+
+                    <div class="dupla">
+                        <div class="campo">
+                            <label for="contaAdminNovaSenha">Nova senha</label>
+                            <div class="campo-senha">
+                                <input id="contaAdminNovaSenha" name="novaSenha" type="password" minlength="6" maxlength="72" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+                                <button type="button" class="senha-toggle" data-toggle-senha="contaAdminNovaSenha"
+                                        aria-label="Mostrar senha" aria-pressed="false"></button>
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="contaAdminConfirmar">Confirmar nova senha</label>
+                            <div class="campo-senha">
+                                <input id="contaAdminConfirmar" name="confirmarNovaSenha" type="password" minlength="6" maxlength="72" autocomplete="new-password" placeholder="Repita a nova senha">
+                                <button type="button" class="senha-toggle" data-toggle-senha="contaAdminConfirmar"
+                                        aria-label="Mostrar senha" aria-pressed="false"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-rodape">
+                    <button type="button" id="btnCancelarContaAdmin" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" id="btnSalvarContaAdmin" class="btn btn-primario">
+                        <i data-lucide="save" style="width: 15px; height: 15px;"></i> Salvar alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Modal: confirmação genérica de ações críticas ────── -->
+    <div id="modalConfirmacaoBackdrop" class="modal-backdrop hidden"></div>
+    <div id="modalConfirmacao" class="modal hidden" role="dialog" aria-modal="true"
+         aria-labelledby="modalConfirmacaoTitulo">
+        <div class="modal-caixa" style="max-width: 440px;">
+            <div class="modal-topo">
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <span class="modal-icone-alerta">
+                        <i id="modalConfirmacaoIcone" data-lucide="alert-triangle"
+                           style="width: 18px; height: 18px;"></i>
+                    </span>
+                    <div>
+                        <h2 id="modalConfirmacaoTitulo">Confirmar ação</h2>
+                        <p id="modalConfirmacaoSub">Revise os detalhes antes de continuar.</p>
+                    </div>
+                </div>
+                <button type="button" id="btnFecharConfirmacao" class="modal-fechar" aria-label="Fechar">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <div class="modal-corpo">
+                <p id="modalConfirmacaoTexto" style="font-size: 13.5px; line-height: 1.55; margin: 0;"></p>
+            </div>
+            <div class="modal-rodape">
+                <button type="button" id="btnCancelarConfirmacao" class="btn btn-secundario">Cancelar</button>
+                <button type="button" id="btnConfirmacaoAcao" class="btn btn-perigo-solido">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Modal: confirmação de exclusão ───────────────────── -->
+    <div id="modalExclusaoBackdrop" class="modal-backdrop hidden"></div>
+    <div id="modalExclusao" class="modal hidden">
+        <div class="modal-caixa" style="max-width: 440px;">
+            <div class="modal-topo">
+                <div>
+                    <h2>Confirmar exclusão</h2>
+                    <p id="modalExclusaoSub">Esta ação não pode ser desfeita.</p>
+                </div>
+                <button type="button" id="btnFecharExclusao" class="modal-fechar" aria-label="Fechar">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <div class="modal-corpo">
+                <p id="modalExclusaoTexto" style="font-size: 13.5px; line-height: 1.55; margin: 0;"></p>
+            </div>
+            <div class="modal-rodape">
+                <button type="button" id="btnCancelarExclusao" class="btn btn-secundario">Cancelar</button>
+                <button type="button" id="btnConfirmarExclusao" class="btn btn-perigo">
+                    <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i> Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        lucide.createIcons();
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     </script>
 
+    <script src="/js/senha-toggle.js"></script>
     <script src="/admin/dashboard.js"></script>
 </body>
 

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Atendimentos — Ministério Acolher</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark': '#7A1C1C',
+                        'brand-deep': '#5C1414',
+                        'brand-light': '#FFFDF9',
+                        'brand-cream': '#F4EFE6',
+                        'brand-muted': '#E8E0D4',
+                        'brand-accent': '#E05A5A',
+                        'brand-text': '#2C1A1A',
+                        'brand-soft': '#7A5C5C'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Botão de visibilidade de senha -->
+    <link rel="stylesheet" href="/css/senha-toggle.css">
+</head>
+<body class="bg-brand-light text-brand-text min-h-full flex flex-col font-sans antialiased overflow-x-hidden">
+
+    <!-- Topo / Header -->
+    <header class="bg-white border-b border-brand-muted px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-20">
+        <div class="flex items-center justify-between gap-3 max-w-7xl mx-auto">
+
+            <!-- Marca -->
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="text-2xl shrink-0">🌹</span>
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg font-bold text-brand-dark leading-tight truncate">Ministério Acolher</h1>
+                    <p class="hidden sm:block text-xs text-brand-soft truncate">Painel de Acompanhamento Humanizado</p>
+                </div>
+            </div>
+
+            <!-- Ações do usuário -->
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+
+                <!-- Indicadores resumidos do próprio profissional -->
+                <button id="btnMinhasEstatisticas" type="button"
+                    class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg bg-brand-cream border border-brand-muted text-xs sm:text-sm font-semibold text-brand-dark hover:bg-brand-muted transition-colors focus:outline-none focus:ring-2 focus:ring-brand-dark/30">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">📊 Meus Números</span>
+                    <span class="sm:hidden">📊</span>
+                </button>
+
+                <!-- Menu do usuário (avatar + nome) -->
+                <div class="relative">
+                    <button id="btnMenuUsuario" type="button" aria-haspopup="true" aria-expanded="false"
+                        class="flex items-center gap-2 rounded-full pl-1 pr-1 sm:pr-2 py-1 hover:bg-brand-cream transition-colors focus:outline-none focus:ring-2 focus:ring-brand-dark/30">
+                        <span id="nomeUsuarioHeader"
+                            class="max-w-[92px] sm:max-w-[160px] truncate text-xs sm:text-sm font-semibold text-brand-dark"></span>
+                        <span id="avatarProfissional"
+                            class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-brand-cream border border-brand-muted flex items-center justify-center text-brand-dark font-bold text-sm">A</span>
+                        <i data-lucide="chevron-down" class="hidden sm:block w-4 h-4 text-brand-soft shrink-0"></i>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div id="menuUsuario"
+                        class="hidden absolute right-0 mt-2 w-56 bg-white border border-brand-muted rounded-xl shadow-xl py-1.5 z-30">
+                        <div class="px-3 py-2 border-b border-brand-muted">
+                            <p id="menuUsuarioNome" class="text-sm font-semibold text-brand-dark truncate"></p>
+                            <p id="menuUsuarioEmail" class="text-[11px] text-brand-soft truncate"></p>
+                        </div>
+                        <button id="btnMinhaConta" type="button"
+                            class="w-full text-left px-3 py-2.5 text-sm font-medium text-brand-text hover:bg-brand-light flex items-center gap-2 transition-colors">
+                            <i data-lucide="user-cog" class="w-4 h-4 text-brand-soft"></i> Minha Conta
+                        </button>
+                        <button id="btnSairPainel" type="button"
+                            class="w-full text-left px-3 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition-colors">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Sair
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+
+        <!-- Cards de Métricas Rápidas -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-brand-muted shadow-sm flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Novos / Pendentes</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-brand-dark mt-1" id="statPendentes">0</h3>
+                </div>
+                <div class="p-2 sm:p-3 shrink-0 bg-amber-50 rounded-lg text-amber-600">
+                    <i data-lucide="clock" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-brand-muted shadow-sm flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Em Andamento</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-blue-700 mt-1" id="statEmAndamento">0</h3>
+                </div>
+                <div class="p-2 sm:p-3 shrink-0 bg-blue-50 rounded-lg text-blue-600">
+                    <i data-lucide="message-circle" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-brand-muted shadow-sm flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Realizados (3/3)</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-emerald-700 mt-1" id="statRealizados">0</h3>
+                </div>
+                <div class="p-2 sm:p-3 shrink-0 bg-emerald-50 rounded-lg text-emerald-600">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-brand-muted shadow-sm flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Não Realizados</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-rose-700 mt-1" id="statNaoRealizados">0</h3>
+                </div>
+                <div class="p-2 sm:p-3 shrink-0 bg-rose-50 rounded-lg text-rose-600">
+                    <i data-lucide="user-x" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Barra de Ferramentas / Filtros e Busca -->
+        <section class="bg-white p-3 sm:p-4 rounded-xl border border-brand-muted shadow-sm flex flex-col md:flex-row gap-3 md:gap-4 md:items-center md:justify-between">
+            <!-- Campo de Busca -->
+            <div class="relative w-full md:w-80">
+                <i data-lucide="search" class="w-4 h-4 text-brand-soft absolute left-3 top-3"></i>
+                <input type="text" id="inputBusca" placeholder="Buscar por nome ou WhatsApp..."
+                    class="w-full pl-9 pr-4 py-2 border border-brand-muted rounded-lg text-sm bg-brand-light focus:outline-none focus:border-brand-dark transition-colors">
+            </div>
+
+            <!-- Filtros de Status (Tabs/Buttons) -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 -mx-1 px-1 scroll-smooth"
+                id="filtroStatusContainer">
+                <button data-status="todos" class="btn-filtro shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-dark text-white transition-colors whitespace-nowrap">Todos</button>
+                <button data-status="pendente" class="btn-filtro shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-cream text-brand-text hover:bg-brand-muted transition-colors whitespace-nowrap">Novos</button>
+                <button data-status="em_andamento" class="btn-filtro shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-cream text-brand-text hover:bg-brand-muted transition-colors whitespace-nowrap">Em Andamento</button>
+                <button data-status="realizado" class="btn-filtro shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-cream text-brand-text hover:bg-brand-muted transition-colors whitespace-nowrap">Realizados</button>
+                <button data-status="nao_realizado" class="btn-filtro shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-cream text-brand-text hover:bg-brand-muted transition-colors whitespace-nowrap">Não Realizados</button>
+            </div>
+        </section>
+
+        <!-- Atendimentos: cartões no mobile / tabela no desktop -->
+        <section class="bg-white rounded-xl border border-brand-muted shadow-sm overflow-hidden">
+
+            <!-- Mobile: cartões (nada é cortado) -->
+            <div id="cardsAtendimentos" class="md:hidden divide-y divide-brand-muted"></div>
+
+            <!-- Desktop: tabela com rolagem horizontal suave -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full min-w-[720px] text-left text-sm">
+                    <thead class="bg-brand-cream text-brand-soft text-xs uppercase font-semibold border-b border-brand-muted">
+                        <tr>
+                            <th class="px-6 py-3.5">Nome / Codinome</th>
+                            <th class="px-6 py-3.5">Perfil</th>
+                            <th class="px-6 py-3.5">WhatsApp</th>
+                            <th class="px-6 py-3.5">Data de Entrada</th>
+                            <th class="px-6 py-3.5">Status</th>
+                            <th class="px-6 py-3.5 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpo" class="divide-y divide-brand-muted">
+                        <!-- Renderizado via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado Vazio / Carregando -->
+            <div id="estadoVazio" class="py-12 text-center text-brand-soft hidden">
+                <i data-lucide="inbox" class="w-10 h-10 mx-auto text-brand-muted mb-2"></i>
+                <p class="text-sm">Nenhum atendimento encontrado com os filtros selecionados.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Drawer Lateral (Prontuário & Notas de Sessão) -->
+    <div id="drawerBackdrop" class="fixed inset-0 bg-black/40 z-40 hidden transition-opacity"></div>
+
+    <aside id="drawerProntuario"
+        class="fixed top-0 right-0 h-full w-full max-w-full sm:max-w-lg bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <!-- Topo do Drawer -->
+        <div class="p-4 sm:p-6 border-b border-brand-muted flex items-start justify-between gap-3 bg-brand-cream">
+            <div class="min-w-0">
+                <span class="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-brand-accent flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Prontuário & Notas Clínicas
+                </span>
+                <h2 id="drawerNome" class="text-base sm:text-lg font-bold text-brand-dark mt-0.5 truncate">Nome do Acolhido</h2>
+                <p id="drawerInfo" class="text-xs text-brand-soft truncate">32 anos • Localização</p>
+            </div>
+            <button id="btnFecharDrawer" type="button" class="text-brand-soft hover:text-brand-dark p-2 -mr-1 rounded-lg shrink-0">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Conteúdo Rolável do Drawer -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
+
+            <!-- Ficha Resumida do Acolhimento -->
+            <div class="bg-brand-light p-3 sm:p-4 rounded-xl border border-brand-muted space-y-2 text-xs">
+                <div class="flex justify-between gap-3">
+                    <span class="font-semibold text-brand-soft shrink-0">WhatsApp:</span>
+                    <a id="drawerWhatsappLink" href="#" target="_blank" rel="noopener"
+                        class="text-brand-dark font-medium underline flex items-center gap-1 min-w-0 break-all">
+                        <span id="drawerWhatsapp" class="truncate"></span> <i data-lucide="external-link" class="w-3 h-3 shrink-0"></i>
+                    </a>
+                </div>
+                <div class="flex justify-between gap-3">
+                    <span class="font-semibold text-brand-soft shrink-0">Motivo Informado:</span>
+                    <span id="drawerMotivo" class="text-brand-text text-right break-words"></span>
+                </div>
+                <div class="flex justify-between gap-3">
+                    <span class="font-semibold text-brand-soft shrink-0">Preferência/Horário:</span>
+                    <span id="drawerHorario" class="text-brand-text text-right"></span>
+                </div>
+            </div>
+
+            <!-- Controle de Status Imediato -->
+            <div>
+                <label for="drawerStatusSelect" class="block text-xs font-bold text-brand-soft uppercase mb-1.5">Status Atual do Acolhimento</label>
+                <select id="drawerStatusSelect"
+                    class="w-full px-3 py-2.5 border border-brand-muted rounded-lg text-sm bg-white font-semibold text-brand-dark focus:outline-none focus:border-brand-dark">
+                    <option value="pendente">⏳ Novo (Aguardando Primeiro Contato)</option>
+                    <option value="em_andamento">💬 Em Andamento (Ciclo Ativo)</option>
+                    <option value="realizado">✅ Realizado (3 Sessões Concluídas)</option>
+                    <option value="nao_realizado">🚫 Não Realizado / Sem Retorno</option>
+                </select>
+            </div>
+
+            <!-- Bloco de Sessões (Anotações por Sessão) -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-brand-soft flex items-center gap-1.5 border-b border-brand-muted pb-1">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Anotações das Sessões (Privado)
+                </h4>
+
+                <!-- Sessão 1 -->
+                <div class="bg-white border border-brand-muted rounded-lg p-3">
+                    <label for="notasSessao1" class="block text-xs font-bold text-brand-dark mb-1">1ª Sessão (Acolhimento Inicial)</label>
+                    <textarea id="notasSessao1" rows="3" placeholder="Registre a escuta, queixa principal e combinados..."
+                        class="w-full text-xs p-2 border border-brand-muted rounded bg-brand-light focus:outline-none focus:border-brand-dark"></textarea>
+                </div>
+
+                <!-- Sessão 2 -->
+                <div class="bg-white border border-brand-muted rounded-lg p-3">
+                    <label for="notasSessao2" class="block text-xs font-bold text-brand-dark mb-1">2ª Sessão (Aprofundamento)</label>
+                    <textarea id="notasSessao2" rows="3" placeholder="Evolução, reflexões e pontos de apoio..."
+                        class="w-full text-xs p-2 border border-brand-muted rounded bg-brand-light focus:outline-none focus:border-brand-dark"></textarea>
+                </div>
+
+                <!-- Sessão 3 -->
+                <div class="bg-white border border-brand-muted rounded-lg p-3">
+                    <label for="notasSessao3" class="block text-xs font-bold text-brand-dark mb-1">3ª Sessão (Fechamento)</label>
+                    <textarea id="notasSessao3" rows="3" placeholder="Encerramento do ciclo, orientações e encaminhamentos..."
+                        class="w-full text-xs p-2 border border-brand-muted rounded bg-brand-light focus:outline-none focus:border-brand-dark"></textarea>
+                </div>
+            </div>
+
+            <!-- Feedback recebido do utente (avaliação pública vinculada) -->
+            <div id="blocoFeedbackUtente"
+                class="hidden bg-[#FBF6EC] border border-[#E8DCC4] rounded-xl p-4 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-brand-dark flex items-center gap-1.5">
+                        <i data-lucide="heart" class="w-3.5 h-3.5 text-brand-accent"></i> Feedback do Utente
+                    </span>
+                    <span id="feedbackUtenteData" class="text-[10px] text-brand-soft"></span>
+                </div>
+                <p id="feedbackUtenteNota" role="img" aria-label=""
+                    class="text-lg leading-none tracking-[0.25em] text-brand-accent"></p>
+                <p id="feedbackUtenteMensagem"
+                    class="text-xs text-brand-text italic leading-relaxed whitespace-pre-line break-words"></p>
+                <p id="feedbackUtenteSemMensagem"
+                    class="hidden text-[11px] text-brand-soft italic">O utente avaliou sem deixar comentário.</p>
+            </div>
+
+            <!-- Card de Mensagem de Feedback para WhatsApp -->
+            <div class="bg-brand-cream border border-brand-muted rounded-xl p-4 space-y-2.5">
+                <span class="text-xs font-bold text-brand-dark flex items-center gap-1.5">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Mensagem Empática de Feedback
+                </span>
+                <!-- O texto (com o link único ?ref=Base64) é gerado por public/js/acolhedor.js -->
+                <p id="drawerFeedbackTexto" class="text-xs text-brand-soft italic leading-relaxed">
+                    "Olá! Que alegria caminhar com você nestas semanas pelo Ministério Acolher. Para nos ajudar a melhorar o acolhimento a outros corações, poderia deixar sua avaliação rápida aqui? https://acolher.life/feedback"
+                </p>
+                <button id="btnCopiarFeedback" type="button"
+                    class="w-full py-2 bg-white hover:bg-brand-light text-brand-dark border border-brand-dark rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Mensagem para o WhatsApp
+                </button>
+            </div>
+        </div>
+
+        <!-- Rodapé do Drawer com Ação de Salvar -->
+        <div class="p-3 sm:p-4 border-t border-brand-muted bg-white">
+            <button id="btnSalvarProntuario" type="button"
+                class="w-full py-2.5 bg-brand-dark hover:bg-brand-deep text-white font-bold rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
+                <i data-lucide="save" class="w-4 h-4"></i> Salvar Prontuário
+            </button>
+        </div>
+    </aside>
+
+    <!-- Modal "Meus Números" (estatísticas do próprio acolhedor) -->
+    <div id="modalEstatisticasBackdrop" class="fixed inset-0 bg-black/50 z-[60] hidden"></div>
+    <div id="modalEstatisticas"
+        class="fixed inset-0 z-[70] hidden items-start sm:items-center justify-center overflow-y-auto p-3 sm:p-6">
+        <div class="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl border border-brand-muted shadow-2xl my-auto">
+
+            <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-brand-muted bg-brand-cream rounded-t-2xl">
+                <div class="min-w-0">
+                    <h2 class="text-base sm:text-lg font-bold text-brand-dark truncate">📊 Meus Números</h2>
+                    <p class="text-[11px] sm:text-xs text-brand-soft">Resumo do seu acompanhamento</p>
+                </div>
+                <button id="btnFecharEstatisticas" type="button"
+                    class="text-brand-soft hover:text-brand-dark p-2 -mr-1 rounded-lg shrink-0">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-6">
+
+                <!-- Estado de carregamento: skeleton leve (sem spinner travado) -->
+                <div id="estatisticasCarregando" class="space-y-6" role="status" aria-live="polite" aria-busy="true">
+                    <div>
+                        <div class="h-3 w-32 bg-brand-muted rounded animate-pulse mb-3"></div>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="h-[86px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                            <div class="h-[86px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                            <div class="h-[86px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                            <div class="h-[86px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="h-3 w-48 bg-brand-muted rounded animate-pulse mb-3"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="h-[76px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                            <div class="h-[76px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                            <div class="h-[76px] bg-brand-cream border border-brand-muted rounded-xl animate-pulse"></div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-brand-soft text-center">Carregando seus indicadores...</p>
+                </div>
+
+                <div id="estatisticasErro" class="hidden text-xs rounded-lg px-3 py-2 bg-rose-50 text-rose-700 border border-rose-200"></div>
+
+                <div id="estatisticasConteudo" class="hidden space-y-6">
+
+                    <!-- ─── Seção 1: Meu Impacto (dados individuais) ─── -->
+                    <section aria-labelledby="tituloMeuImpacto">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 id="tituloMeuImpacto"
+                                class="text-xs font-bold uppercase tracking-wider text-brand-soft flex items-center gap-1.5">
+                                <i data-lucide="heart-handshake" class="w-4 h-4 text-brand-accent"></i> Meu Impacto
+                            </h3>
+                            <span id="estatAtualizadoEm" class="text-[10px] text-brand-soft text-right"></span>
+                        </div>
+
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Total atendidos</p>
+                                        <h3 id="estatTotalAcolhidos" class="text-xl sm:text-2xl font-bold text-brand-dark mt-1">0</h3>
+                                    </div>
+                                    <span class="p-2 bg-brand-cream rounded-lg text-brand-dark shrink-0">
+                                        <i data-lucide="users" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Sob sua responsabilidade</p>
+                            </div>
+
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Em andamento</p>
+                                        <h3 id="estatEmAndamentoModal" class="text-xl sm:text-2xl font-bold text-blue-700 mt-1">0</h3>
+                                    </div>
+                                    <span class="p-2 bg-blue-50 rounded-lg text-blue-600 shrink-0">
+                                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Ciclos ativos</p>
+                            </div>
+
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Concluídos (3/3)</p>
+                                        <h3 id="estatConcluidos" class="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">0</h3>
+                                    </div>
+                                    <span class="p-2 bg-emerald-50 rounded-lg text-emerald-600 shrink-0">
+                                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Ciclos finalizados</p>
+                            </div>
+
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Taxa de conclusão</p>
+                                        <h3 id="estatTaxaConclusao" class="text-xl sm:text-2xl font-bold text-brand-dark mt-1">0%</h3>
+                                    </div>
+                                    <span class="p-2 bg-amber-50 rounded-lg text-amber-600 shrink-0">
+                                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Do seu total atendido</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 bg-brand-light border border-brand-muted rounded-xl p-3 sm:p-4">
+                            <div class="flex items-center justify-between text-xs gap-3">
+                                <span class="font-semibold text-brand-soft">Progresso dos seus acompanhamentos</span>
+                                <span class="font-bold text-brand-dark" id="estatTaxaConclusaoBarra">0%</span>
+                            </div>
+                            <div class="mt-2 h-2 w-full bg-brand-muted rounded-full overflow-hidden">
+                                <div id="estatBarraConclusao" class="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                                    style="width: 0%"></div>
+                            </div>
+                            <p class="text-[11px] text-brand-soft mt-2">
+                                <strong id="estatUltimos30" class="text-brand-dark">0</strong>
+                                novos acolhimentos nos últimos 30 dias
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- ─── Seção 2: Impacto Geral da Equipe (somas anônimas) ─── -->
+                    <section aria-labelledby="tituloImpactoEquipe"
+                        class="rounded-xl border border-brand-muted bg-brand-cream p-4 sm:p-5">
+                        <h3 id="tituloImpactoEquipe"
+                            class="text-xs font-bold uppercase tracking-wider text-brand-soft flex items-center gap-1.5">
+                            <i data-lucide="users" class="w-4 h-4 text-brand-dark"></i> Impacto Geral da Equipe
+                        </h3>
+                        <p class="text-sm sm:text-base font-semibold text-brand-dark mt-1">Juntos pelo Ministério Acolher</p>
+                        <p class="text-[11px] text-brand-soft">Somas anônimas de toda a plataforma</p>
+
+                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Vidas acolhidas</p>
+                                        <h3 id="estatEquipeVidas" class="text-lg sm:text-xl font-bold text-brand-dark mt-0.5">0</h3>
+                                    </div>
+                                    <span class="p-2 bg-brand-cream rounded-lg text-brand-dark shrink-0">
+                                        <i data-lucide="heart" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Na plataforma</p>
+                            </div>
+
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Conclusões coletivas</p>
+                                        <h3 id="estatEquipeConcluidos" class="text-lg sm:text-xl font-bold text-emerald-700 mt-0.5">0</h3>
+                                    </div>
+                                    <span class="p-2 bg-emerald-50 rounded-lg text-emerald-600 shrink-0">
+                                        <i data-lucide="check-check" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Ciclos concluídos pela equipe</p>
+                            </div>
+
+                            <div class="bg-white border border-brand-muted rounded-xl p-3 sm:p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] sm:text-xs font-semibold text-brand-soft uppercase tracking-wider leading-tight">Acolhimentos no mês</p>
+                                        <h3 id="estatEquipeMes" class="text-lg sm:text-xl font-bold text-blue-700 mt-0.5">0</h3>
+                                    </div>
+                                    <span class="p-2 bg-blue-50 rounded-lg text-blue-600 shrink-0">
+                                        <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-brand-soft mt-1">Registrados neste mês</p>
+                            </div>
+                        </div>
+
+                        <p class="text-[10px] text-brand-soft mt-3 flex items-start gap-1.5 leading-relaxed">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 shrink-0 mt-px"></i>
+                            <span>Apenas totais agregados. Nenhum nome, prontuário ou dado individual é compartilhado entre acolhedores.</span>
+                        </p>
+                    </section>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button id="btnFecharEstatisticasRodape" type="button"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-brand-muted text-sm font-semibold text-brand-text hover:bg-brand-light transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal "Minha Conta" (perfil do usuário) -->
+    <div id="modalContaBackdrop" class="fixed inset-0 bg-black/50 z-[60] hidden"></div>
+    <div id="modalConta"
+        class="fixed inset-0 z-[70] hidden items-start sm:items-center justify-center overflow-y-auto p-3 sm:p-6">
+        <div class="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto bg-white rounded-2xl border border-brand-muted shadow-2xl my-auto">
+
+            <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-brand-muted bg-brand-cream rounded-t-2xl">
+                <div class="min-w-0">
+                    <h2 class="text-base sm:text-lg font-bold text-brand-dark truncate">Minha Conta</h2>
+                    <p class="text-[11px] sm:text-xs text-brand-soft">Atualize seus dados de acesso</p>
+                </div>
+                <button id="btnFecharModalConta" type="button"
+                    class="text-brand-soft hover:text-brand-dark p-2 -mr-1 rounded-lg shrink-0">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="formConta" class="p-4 sm:p-6 space-y-4" novalidate>
+                <div id="contaMensagem" class="hidden text-xs rounded-lg px-3 py-2"></div>
+
+                <div>
+                    <label for="contaNome" class="block text-xs font-bold text-brand-soft uppercase mb-1.5">Nome de exibição</label>
+                    <input id="contaNome" name="nome" type="text" maxlength="100" required autocomplete="name"
+                        class="w-full px-3 py-2.5 border border-brand-muted rounded-lg text-sm bg-brand-light focus:outline-none focus:border-brand-dark">
+                </div>
+
+                <div>
+                    <label for="contaEmail" class="block text-xs font-bold text-brand-soft uppercase mb-1.5">E-mail pessoal</label>
+                    <input id="contaEmail" name="email" type="email" maxlength="150" required autocomplete="email"
+                        class="w-full px-3 py-2.5 border border-brand-muted rounded-lg text-sm bg-brand-light focus:outline-none focus:border-brand-dark">
+                </div>
+
+                <div class="pt-2 border-t border-brand-muted">
+                    <p class="text-xs font-bold text-brand-soft uppercase mt-2">Troca de senha (opcional)</p>
+                </div>
+
+                <div>
+                    <label for="contaSenhaAtual" class="block text-xs font-bold text-brand-soft uppercase mb-1.5">Senha atual</label>
+                    <div class="campo-senha">
+                        <input id="contaSenhaAtual" name="senhaAtual" type="password" autocomplete="current-password"
+                            class="w-full px-3 py-2.5 border border-brand-muted rounded-lg text-sm bg-brand-light focus:outline-none focus:border-brand-dark">
+                        <button type="button" class="senha-toggle" data-toggle-senha="contaSenhaAtual"
+                            aria-label="Mostrar senha" aria-pressed="false"></button>
+                    </div>
+                    <p class="text-[11px] text-brand-soft mt-1">Obrigatória para alterar e-mail ou senha.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="contaNovaSenha" class="block text-xs font-bold text-brand-soft uppercase mb-1.5">Nova senha</label>
+                        <div class="campo-senha">
+                            <input id="contaNovaSenha" name="novaSenha" type="password" minlength="6" maxlength="72"
+                                autocomplete="new-password" placeholder="Mínimo 6 caracteres"
+                                class="w-full px-3 py-2.5 border border-brand-muted rounded-lg text-sm bg-brand-light focus:outline-none focus:border-brand-dark">
+                            <button type="button" class="senha-toggle" data-toggle-senha="contaNovaSenha"
+                                aria-label="Mostrar senha" aria-pressed="false"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="contaConfirmarSenha" class="block text-xs font-bold text-brand-soft uppercase mb-1.5">Confirmar nova senha</label>
+                        <div class="campo-senha">
+                            <input id="contaConfirmarSenha" name="confirmarNovaSenha" type="password" minlength="6" maxlength="72"
+                                autocomplete="new-password" placeholder="Repita a nova senha"
+                                class="w-full px-3 py-2.5 border border-brand-muted rounded-lg text-sm bg-brand-light focus:outline-none focus:border-brand-dark">
+                            <button type="button" class="senha-toggle" data-toggle-senha="contaConfirmarSenha"
+                                aria-label="Mostrar senha" aria-pressed="false"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+                    <button id="btnCancelarConta" type="button"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-lg border border-brand-muted text-sm font-semibold text-brand-text hover:bg-brand-light transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="btnSalvarConta" type="submit"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-brand-dark hover:bg-brand-deep text-white text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="save" class="w-4 h-4"></i> Salvar alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/senha-toggle.js"></script>
+    <script src="/js/acolhedor.js"></script>
+</body>
+</html>

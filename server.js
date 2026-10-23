@@ -11,6 +11,28 @@ const app = express();
 app.set('trust proxy', 1); // necessário se estiver atrás de um proxy (ex: Heroku, Nginx)
 const PORT = process.env.PORT || 3000;
 
+// ─── Codificação UTF-8 (correção crítica) ────────────────────────────────────
+// Garante `charset=utf-8` em TODAS as respostas textuais (HTML, JSON, CSS,
+// JS, SVG). Sem isto, alguns clientes/proxies assumem ISO-8859-1 e a acentuação
+// aparece corrompida ("SÃ£o JosÃ© dos Campos â€“ SP").
+app.use((req, res, next) => {
+    const setHeaderOriginal = res.setHeader.bind(res);
+
+    res.setHeader = (nome, valor) => {
+        if (
+            String(nome).toLowerCase() === 'content-type' &&
+            typeof valor === 'string' &&
+            /^(text\/|application\/(json|javascript|xml|manifest\+json))/i.test(valor) &&
+            !/charset=/i.test(valor)
+        ) {
+            valor = `${valor}; charset=utf-8`;
+        }
+        return setHeaderOriginal(nome, valor);
+    };
+
+    next();
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -34,6 +56,11 @@ const dbPool = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+    // utf8mb4 evita o duplo-encoding ("SÃ£o" em vez de "São") e suporta
+    // acentos, cedilhas, travessões (â€“) e emojis nos testemunhos.
+    // No mysql2, `charset` define o par charset/collation da conexão
+    // (a opção `collation` não é aceita pelo pool).
+    charset: 'utf8mb4',
     waitForConnections: true,
     connectionLimit: 10
 });
@@ -61,15 +88,128 @@ async function inicializarBanco(tentativas = 10) {
                     termo_sigilo             TINYINT(1) DEFAULT 0,
                     termo_sessoes            TINYINT(1) DEFAULT 0,
                     termo_gratuidade         TINYINT(1) DEFAULT 0,
-                    criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    status_acolhimento       VARCHAR(30) DEFAULT 'pendente',
+                    notas_sessao_1           TEXT,
+                    notas_sessao_2           TEXT,
+                    notas_sessao_3           TEXT,
+                    tentativas_contato       INT DEFAULT 0,
+                    proximo_lembrete         DATE,
+                    criado_em                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    atualizado_em            TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 )
             `);
+
+            await conn.query(`
+                CREATE TABLE IF NOT EXISTS acolhedores (
+                    id            INT AUTO_INCREMENT PRIMARY KEY,
+                    nome          VARCHAR(100) NOT NULL,
+                    email         VARCHAR(150) NOT NULL UNIQUE,
+                    senha_hash    VARCHAR(255) NULL,
+                    perfil        ENUM('admin', 'acolhedor') DEFAULT 'acolhedor',
+                    ativo         TINYINT(1) DEFAULT 1,
+                    sessao_versao INT NOT NULL DEFAULT 0,
+                    criado_em     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            `);
+
+            await conn.query(`
+                CREATE TABLE IF NOT EXISTS tokens_primeiro_acesso (
+                    id            INT AUTO_INCREMENT PRIMARY KEY,
+                    acolhedor_id  INT NOT NULL,
+                    token         VARCHAR(128) NOT NULL UNIQUE,
+                    usado         TINYINT(1) DEFAULT 0,
+                    expira_em     DATETIME NOT NULL,
+                    criado_em     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (acolhedor_id) REFERENCES acolhedores(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            `);
+
+            // ─── Avaliações (feedback) recebidas pelo site público ────────
+            // `cadastro_id` é opcional: o link enviado pelo acolhedor carrega um
+            // `?ref=` (Base64 do id do cadastro) que vincula a avaliação ao
+            // prontuário. Se o utente avaliar pelo site público, fica NULL.
+            // ON DELETE SET NULL preserva a avaliação mesmo que o prontuário
+            // precise ser eliminado por pedido de titular (LGPD).
+            await conn.query(`
+                CREATE TABLE IF NOT EXISTS feedbacks (
+                    id          INT AUTO_INCREMENT PRIMARY KEY,
+                    nota        INT NOT NULL COMMENT 'Nota de 1 a 5',
+                    mensagem    TEXT NULL,
+                    cadastro_id INT NULL COMMENT 'Vínculo opcional com o prontuário avaliado',
+                    criado_em   DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_feedbacks_criado_em (criado_em),
+                    INDEX idx_feedbacks_cadastro_id (cadastro_id),
+                    CONSTRAINT fk_feedbacks_cadastro
+                        FOREIGN KEY (cadastro_id) REFERENCES cadastros(id) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            `);
+
+            // ─── Migração: vínculo feedback ↔ prontuário ─────────────────
+            // Tabelas `feedbacks` criadas antes desta versão não possuem a
+            // coluna nem a chave estrangeira; criamos ambas se necessário.
+            try {
+                const [colunaFeedback] = await conn.query(
+                    `SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.COLUMNS
+                      WHERE TABLE_SCHEMA = DATABASE()
+                        AND TABLE_NAME = 'feedbacks'
+                        AND COLUMN_NAME = 'cadastro_id'`
+                );
+
+                if (colunaFeedback[0].total === 0) {
+                    await conn.query(
+                        'ALTER TABLE feedbacks ADD COLUMN cadastro_id INT NULL AFTER mensagem'
+                    );
+                    await conn.query(
+                        'ALTER TABLE feedbacks ADD INDEX idx_feedbacks_cadastro_id (cadastro_id)'
+                    ).catch(() => { /* índice já existente ou versão sem suporte */ });
+                    console.log('✅ Coluna "feedbacks.cadastro_id" adicionada com sucesso.');
+                }
+
+                const [chaveEstrangeira] = await conn.query(
+                    `SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+                      WHERE TABLE_SCHEMA = DATABASE()
+                        AND TABLE_NAME = 'feedbacks'
+                        AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+                        AND CONSTRAINT_NAME = 'fk_feedbacks_cadastro'`
+                );
+
+                if (chaveEstrangeira[0].total === 0) {
+                    await conn.query(
+                        `ALTER TABLE feedbacks
+                           ADD CONSTRAINT fk_feedbacks_cadastro
+                           FOREIGN KEY (cadastro_id) REFERENCES cadastros(id) ON DELETE SET NULL`
+                    );
+                    console.log('✅ Chave estrangeira "fk_feedbacks_cadastro" criada com sucesso.');
+                }
+            } catch (e) {
+                console.warn('⚠️ Não foi possível migrar o vínculo "feedbacks.cadastro_id":', e.message);
+            }
+
+            // Integridade da nota garantida também no banco (MySQL 8+).
+            // Em versões sem suporte a CHECK o erro é ignorado — a validação
+            // da aplicação continua sendo a fonte de verdade.
+            try {
+                await conn.query(
+                    'ALTER TABLE feedbacks ADD CONSTRAINT chk_feedbacks_nota CHECK (nota BETWEEN 1 AND 5)'
+                );
+            } catch (_) {
+                /* constraint já existe ou versão sem suporte a CHECK */
+            }
 
             // Migração: adiciona colunas que podem não existir em tabelas antigas
             const colunasNecessarias = {
                 'pais': 'VARCHAR(100) AFTER localizacao',
-                'onde_conheceu': 'VARCHAR(50) AFTER preferencia_horario'
+                'onde_conheceu': 'VARCHAR(50) AFTER preferencia_horario',
+                'status_acolhimento': "VARCHAR(30) DEFAULT 'pendente' AFTER termo_gratuidade",
+                'notas_sessao_1': 'TEXT AFTER status_acolhimento',
+                'notas_sessao_2': 'TEXT AFTER notas_sessao_1',
+                'notas_sessao_3': 'TEXT AFTER notas_sessao_2',
+                'tentativas_contato': 'INT DEFAULT 0 AFTER notas_sessao_3',
+                'proximo_lembrete': 'DATE AFTER tentativas_contato',
+                'atualizado_em': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER criado_em'
             };
+
             for (const [coluna, definicao] of Object.entries(colunasNecessarias)) {
                 try {
                     const [existe] = await conn.query(
@@ -83,6 +223,58 @@ async function inicializarBanco(tentativas = 10) {
                     }
                 } catch (e) {
                     console.warn(`⚠️ Não foi possível verificar/adicionar coluna "${coluna}":`, e.message);
+                }
+            }
+
+            // Migração da tabela `acolhedores`: coluna de versão de sessão,
+            // usada para invalidar sessões ativas quando um admin bloqueia
+            // ou reativa um usuário.
+            const colunasAcolhedores = {
+                'sessao_versao': 'INT NOT NULL DEFAULT 0 AFTER ativo'
+            };
+
+            for (const [coluna, definicao] of Object.entries(colunasAcolhedores)) {
+                try {
+                    const [existe] = await conn.query(
+                        `SELECT COUNT(*) AS total FROM INFORMATION_SCHEMA.COLUMNS
+                         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'acolhedores' AND COLUMN_NAME = ?`,
+                        [coluna]
+                    );
+                    if (existe[0].total === 0) {
+                        await conn.query(`ALTER TABLE acolhedores ADD COLUMN ${coluna} ${definicao}`);
+                        console.log(`✅ Coluna "acolhedores.${coluna}" adicionada com sucesso.`);
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ Não foi possível verificar/adicionar coluna "acolhedores.${coluna}":`, e.message);
+                }
+            }
+
+            // ─── Garantia de charset nas tabelas de texto ─────────────────
+            // `CREATE TABLE IF NOT EXISTS` não altera tabelas antigas criadas
+            // com o charset padrão do servidor (frequentemente latin1). Sem
+            // esta migração o pool utf8mb4 não é suficiente para preservar
+            // acentos no banco.
+            const tabelasUtf8mb4 = ['cadastros', 'acolhedores', 'tokens_primeiro_acesso', 'feedbacks'];
+
+            for (const tabela of tabelasUtf8mb4) {
+                try {
+                    const [colacao] = await conn.query(
+                        `SELECT TABLE_COLLATION AS collation
+                           FROM INFORMATION_SCHEMA.TABLES
+                          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+                        [tabela]
+                    );
+                    const atual = colacao[0] && colacao[0].collation;
+
+                    if (atual && !/^utf8mb4/i.test(atual)) {
+                        // Nome de tabela vem de lista fixa (sem injeção).
+                        await conn.query(
+                            `ALTER TABLE ${tabela} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+                        );
+                        console.log(`✅ Tabela "${tabela}" convertida para utf8mb4.`);
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ Não foi possível converter a tabela "${tabela}" para utf8mb4:`, e.message);
                 }
             }
 
@@ -108,13 +300,6 @@ async function inicializarBanco(tentativas = 10) {
 
 inicializarBanco();
 
-// ─── Rotas do painel administrativo ─────────────────────────────────────────
-const adminRoutes = require('./routes/admin')(dbPool);
-app.use('/admin', adminRoutes);
-
-// ─── Rotas de localização (países, estados, cidades) ────────────────────────
-app.use('/api/location', locationRoutes);
-
 // ─── Configuração do Nodemailer (Brevo) ─────────────────────────────────────
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -125,6 +310,43 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
+
+// ─── Rotas do painel administrativo ─────────────────────────────────────────
+// O dashboard admin precisa do transporter para disparar convites de acesso
+// (cadastro de acolhedores / reenvio de link).
+const adminRoutes = require('./routes/admin')(dbPool, transporter);
+app.use('/admin', adminRoutes);
+
+// ─── Rotas de localização (países, estados, cidades) ────────────────────────
+app.use('/api/location', locationRoutes);
+
+// ─── Rotas unificadas de autenticação / recuperação de senha ────────────────
+// Montadas na raiz porque expõem:
+//   POST /api/esqueci-senha
+//   GET  /redefinir-senha
+//   POST /api/redefinir-senha
+const authRoutes = require('./routes/auth')(dbPool, transporter);
+app.use('/', authRoutes);
+
+// ─── Feedback público (avaliações) ─────────────────────────────────────────
+//   GET  /feedback      -> página pública de avaliação (HTML)
+//   POST /api/feedback  -> registra a avaliação (JSON, queries parametrizadas)
+const feedbackRoutes = require('./routes/feedback')(dbPool);
+app.use('/', feedbackRoutes);
+
+// ─── Rotas de gestão do ACOLHEDOR ───────────────────────────────────────────
+// Um único prefixo ('/acolhedor') serve a VIEW e a API JSON:
+//   GET   /acolhedor/painel            -> entrega views/acolhedor/painel.html
+//   GET   /acolhedor/atendimentos      -> JSON (lista, filtros via query string)
+//   PATCH /acolhedor/atendimentos/:id  -> JSON (atualização parcial)
+// O front-end (public/js/acolhedor.js) usa API_BASE = '/acolhedor'.
+const acolhedorRoutes = require('./routes/acolhedor')(dbPool);
+app.use('/acolhedor', acolhedorRoutes);
+
+// -----ROTAS DE GESTÃO DO PROFISSIONAL---------
+// const profissionalRoutes = require('./routes/profissional')(dbPool);
+// app.use('/api/profissional', profissionalRoutes);
+
 
 // ─── Profissionais ───────────────────────────────────────────────────────────
 const PROFISSIONAIS = {

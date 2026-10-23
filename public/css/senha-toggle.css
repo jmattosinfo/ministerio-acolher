@@ -1,0 +1,72 @@
+/* public/css/senha-toggle.css
+ * Botão "olhinho" para alternar a visibilidade de campos de senha.
+ * Compatível com Tailwind (as regras usam especificidade maior que as
+ * utilities de padding) e com os formulários em CSS puro.
+ */
+
+.campo-senha {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+/* Reserva espaço à direita para o botão não sobrepor o texto digitado. */
+.campo-senha > input {
+    width: 100%;
+    padding-right: 44px !important;
+    margin-bottom: 0 !important;
+}
+
+.senha-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #7A5C5C;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s ease, background 0.15s ease;
+    z-index: 2; 
+}
+
+.senha-toggle:hover,
+.senha-toggle:focus-visible {
+    color: #7A1C1C;
+    background: rgba(122, 28, 28, 0.08);
+    outline: none;
+}
+
+.senha-toggle:focus-visible {
+    box-shadow: 0 0 0 2px rgba(122, 28, 28, 0.25);
+}
+
+.senha-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+}
+
+.senha-toggle .icone-olho-riscado {
+    display: none;
+}
+
+.senha-toggle.visivel .icone-olho {
+    display: none;
+}
+
+.senha-toggle.visivel .icone-olho-riscado {
+    display: block;
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Link inválido — Ministério Acolher</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: #F4EFE6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .icone {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            color: #7A1C1C;
+            font-size: 20px;
+            margin: 0 0 12px;
+        }
+
+        p {
+            color: #7A5C5C;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 24px;
+        }
+
+        a.botao {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #7A1C1C;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        a.botao:hover {
+            background: #5f1515;
+        }
+
+        .link-secundario {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 12px;
+            color: #7A1C1C;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="icone">🔒</div>
+        <h1>Link expirado ou inválido</h1>
+        <p>
+            Este link de redefinição de senha não é mais válido. Ele pode ter expirado
+            (o limite é de 2 horas) ou já ter sido utilizado.
+        </p>
+
+        <a class="botao" href="/admin/login">Ir para o login</a>
+        <a class="link-secundario" href="/admin/login">
+            Solicitar um novo link de recuperação
+        </a>
+    </div>
+</body>
+
+</html>

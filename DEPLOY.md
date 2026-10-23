@@ -99,33 +99,34 @@ O modelo versionado é o [`.env.example`](.env.example) (uso em desenvolvimento)
 | `EMAIL_USER` | **Sim** | Usuário SMTP (Brevo) | — |
 | `EMAIL_PASS` | **Sim** | Senha/chave SMTP (Brevo: `xkeysib-...`) | — |
 | `EMAIL_FROM` | Não | Nome/exibição do remetente | `EMAIL_USER` |
-| `ADMIN_USERNAME` | **Sim** | Usuário do painel admin | — |
-| `ADMIN_PASSWORD_HASH` | **Sim** | Hash bcrypt da senha do admin (**entre aspas simples**) | — |
+
+> 🔐 **Autenticação unificada:** `ADMIN_USERNAME`/`ADMIN_PASSWORD_HASH` foram descontinuadas. O login consulta a tabela `acolhedores` (e-mail + `senha_hash`). Crie o admin com `node scripts/criar-admin-inicial.js "Nome" "email" "senha"` dentro da aplicação já com o banco acessível.
 
 > `NODE_ENV=production` é importante porque o cookie de sessão usa `secure: true` nesse caso — sem HTTPS, a sessão não funcionará.
 
-### 4.2. Gerar o hash da senha do admin
+### 4.2. Criar o administrador inicial
 
 ```bash
-node scripts/gerar-hash-senha.js "sua-senha-strong"
-# Saída: ADMIN_PASSWORD_HASH='$2b$10$...'
+# Com o container da aplicação no ar e o banco acessível:
+docker compose -f docker-compose.yml exec acolher-app \
+  node scripts/criar-admin-inicial.js "Nome do Admin" "admin@acolher.life" "SuaSenhaForte"
 ```
+
+> Também é possível rodar o script localmente apontando o `.env` para o MySQL de produção. O script cria o registro na tabela `acolhedores` com `perfil='admin'` e senha hasheada com bcrypt. Os demais membros da equipe são convidados pelo painel e definem a senha no primeiro acesso; o fluxo **“Esqueci minha senha”** envia um link válido por 2 horas.
 
 ### 4.3. Regra obrigatória das aspas simples
 
-O Docker Compose interpreta o caractere `$` como início de **interpolação de variável** ao processar o `.env`. Como o hash bcrypt (`$2b$10$...`) e outras senhas podem conter `$`, o valor **deve** ser envolvido por **aspas simples**:
+O Docker Compose interpreta o caractere `$` como início de **interpolação de variável** ao processar o `.env`. Qualquer valor que contenha `$` (senhas de banco, chaves SMTP) **deve** ser envolvido por **aspas simples**:
 
 ```env
 # CORRETO
-ADMIN_PASSWORD_HASH='$2b$10$exemploDeHashGeradoPeloScript'
+DB_PASSWORD='S3nh@Com$Cifrao'
 
-# INCORRETO — o Compose tentará interpolar '$2b' e '10' e corromperá o hash
-ADMIN_PASSWORD_HASH=$2b$10$exemploDeHashGeradoPeloScript
+# INCORRETO — o Compose tentará interpolar o trecho após '$' e corromperá o valor
+DB_PASSWORD=S3nh@Com$Cifrao
 ```
 
-A mesma regra se aplica a qualquer senha de banco ou chave de e-mail que contenha caracteres especiais.
-
-> 🔐 Os valores reais de produção (credenciais MySQL, SMTP, `SESSION_SECRET`, `ADMIN_USERNAME/HASH`) **não constam no repositório** e devem ser mantidos apenas no `.env` da VPS.
+> 🔐 Os valores reais de produção (credenciais MySQL, SMTP, `SESSION_SECRET`) **não constam no repositório** e devem ser mantidos apenas no `.env` da VPS. As credenciais de acesso ao painel ficam na tabela `acolhedores` (hash bcrypt), nunca em texto puro.
 
 ---
 
